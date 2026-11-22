@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121110">
+  <title>Unir mi local · LOGIA</title>
+  <link rel="stylesheet" href="assets/logia.css">
+</head>
+<body>
+<main class="wrap">
+  <section id="form">
+    <div class="emblema chico" id="em"></div>
+    <h2 class="serif titulo">Tu local en la Ruta Cervecera</h2>
+    <p class="lema" style="margin:16px auto 8px">Presencia en el mapa de la Logia, visitantes que llegan a completar su pasaporte y un resumen mensual de visitas. Tu equipo no tiene que hacer nada: los miembros se sellan solos con el código del distintivo. Sin costo.</p>
+    <form id="f">
+      <label for="nombre">NOMBRE DEL LOCAL</label><input id="nombre" maxlength="60" required>
+      <label for="direccion">DIRECCIÓN</label><input id="direccion" maxlength="100" placeholder="Calle 40 # 24-30" required>
+      <label for="contacto">PERSONA DE CONTACTO</label><input id="contacto" maxlength="60" required>
+      <label for="whatsapp">WHATSAPP</label><input id="whatsapp" type="tel" inputmode="tel" maxlength="20" required>
+      <label for="email">CORREO (PARA EL RESUMEN MENSUAL)</label><input id="email" type="email" maxlength="80">
+      <label for="instagram">INSTAGRAM</label><input id="instagram" maxlength="40" placeholder="@milocal">
+      <div class="check"><input id="acepta" type="checkbox" required>
+        <span>Acepto que el local aparezca en la Ruta Cervecera de la Logia y la instalación del distintivo con el código de sello.</span></div>
+      <button id="enviar" class="btn btn-rojo" type="submit">UNIR MI LOCAL</button>
+      <p id="err" class="error"></p>
+    </form>
+  </section>
+  <section id="gracias" class="oculto" style="text-align:center;padding-top:40px">
+    <div class="emblema" id="em2"></div>
+    <h2 class="serif titulo">Gracias</h2>
+    <p class="lema">El equipo de la Logia te escribe por WhatsApp para coordinar la instalación del distintivo. Después de eso, tu local queda en la ruta.</p>
+  </section>
+</main>
+<script src="assets/logia.js"></script>
+<script>
+  document.getElementById('em').innerHTML = LOGIA.emblema();
+  document.getElementById('em2').innerHTML = LOGIA.emblema();
+  document.getElementById('f').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var b = document.getElementById('enviar'), err = document.getElementById('err');
+    var v = function (i) { return document.getElementById(i).value; };
+    err.textContent = ''; b.disabled = true; b.innerHTML = '<span class="spinner"></span>';
+    LOGIA.api('altaLocal', { nombre: v('nombre'), direccion: v('direccion'), contacto: v('contacto'), whatsapp: v('whatsapp'),
+                             email: v('email'), instagram: v('instagram'), acepta: document.getElementById('acepta').checked })
+      .then(function () { document.getElementById('form').classList.add('oculto'); document.getElementById('gracias').classList.remove('oculto'); })
+      .catch(function (e) { b.disabled = false; b.textContent = 'UNIR MI LOCAL'; err.textContent = e.message; });
+  });
+</script>
+</body>
+</html>

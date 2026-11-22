@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Distintivo · LOGIA</title>
+  <link rel="stylesheet" href="assets/logia.css">
+  <style> @page { size: A6; margin: 0; } </style>
+</head>
+<body>
+  <div class="no-print" style="max-width:420px;margin:20px auto 0;padding:0 20px">
+    <button class="btn btn-claro" onclick="print()">Imprimir distintivo (A6)</button>
+  </div>
+  <div class="distintivo">
+    <div style="width:30mm;margin:0 auto 3mm" id="em"></div>
+    <div class="serif" style="font-size:12mm;letter-spacing:.18em;padding-left:.18em">LOGIA</div>
+    <div class="kicker" style="margin-top:1.5mm;font-size:2.6mm" id="tipo"></div>
+    <div class="qrbox" id="qr"></div>
+    <div class="serif" style="font-size:6.5mm">Sella tu pasaporte</div>
+    <div style="font-size:3.2mm;opacity:.8;margin-top:1.5mm;line-height:1.45">Escanea con la cámara de tu celular.<br>Ruta Cervecera · Teusaquillo – Parkway</div>
+    <div style="margin-top:5mm;font-size:3mm;letter-spacing:.3em;color:var(--oro)" id="local"></div>
+  </div>
+<script src="assets/qrcode.js"></script>
+<script src="assets/logia.js"></script>
+<script>
+  var p = new URLSearchParams(location.search);
+  var base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  document.getElementById('em').innerHTML = LOGIA.emblema();
+  document.getElementById('qr').innerHTML = LOGIA.qr(base + 'sello.html?v=' + encodeURIComponent(p.get('v') || '') + '&k=' + encodeURIComponent(p.get('k') || ''));
+  document.getElementById('tipo').textContent = (p.get('d') || 'Espacio participante').toUpperCase();
+  document.getElementById('local').textContent = (p.get('n') || '').toUpperCase();
+</script>
+</body>
+</html>

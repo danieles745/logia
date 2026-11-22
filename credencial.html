@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121110">
+  <title>Mi credencial · LOGIA</title>
+  <link rel="stylesheet" href="assets/logia.css">
+</head>
+<body>
+<main class="wrap">
+  <div id="carga" style="text-align:center;padding:80px 0"><span class="spinner"></span></div>
+  <div id="contenido" class="oculto">
+    <div id="tarjeta"></div>
+    <div style="margin-top:22px" id="acciones"></div>
+  </div>
+
+  <!-- Recuperar en un teléfono nuevo -->
+  <section id="recuperar" class="oculto">
+    <div class="emblema chico" id="em"></div>
+    <h2 class="serif titulo">Abre tu credencial</h2>
+    <p class="lema" style="margin:14px auto 6px">Escribe tu número de miembro y el código que aparece en tu tarjeta.</p>
+    <label for="rm">NÚMERO DE MIEMBRO</label>
+    <input id="rm" placeholder="LG-0001" autocapitalize="characters">
+    <label for="rc">CÓDIGO</label>
+    <input id="rc" maxlength="6" autocapitalize="characters">
+    <button class="btn btn-rojo" style="margin-top:22px" id="rb">ABRIR</button>
+    <p id="rerr" class="error"></p>
+    <a class="btn btn-linea" style="margin-top:12px" href="index.html?unirme=1">Aún no soy miembro</a>
+  </section>
+</main>
+<script src="assets/qrcode.js"></script>
+<script src="assets/logia.js"></script>
+<script>
+  document.getElementById('em').innerHTML = LOGIA.emblema();
+
+  function mostrarRecuperar() {
+    document.getElementById('carga').classList.add('oculto');
+    document.getElementById('recuperar').classList.remove('oculto');
+  }
+
+  function cargar(id) {
+    LOGIA.api('credencial', id).then(function (c) {
+      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c, id);
+      document.getElementById('acciones').innerHTML = LOGIA.botonesWallet(c) +
+        (c.whatsapp ? '<a class="btn btn-rojo" href="' + c.whatsapp + '">CANAL DE WHATSAPP</a>' : '');
+      document.getElementById('carga').classList.add('oculto');
+      document.getElementById('recuperar').classList.add('oculto');
+      document.getElementById('contenido').classList.remove('oculto');
+    }).catch(mostrarRecuperar);
+  }
+
+  var id = LOGIA.identidad();
+  if (id) cargar(id); else mostrarRecuperar();
+
+  document.getElementById('rb').onclick = function () {
+    var err = document.getElementById('rerr'); err.textContent = '';
+    LOGIA.api('recuperar', { m: document.getElementById('rm').value, codigo: document.getElementById('rc').value })
+      .then(function (r) { LOGIA.guardar(r.m, r.t); cargar(r); })
+      .catch(function (e) { err.textContent = e.message; });
+  };
+</script>
+</body>
+</html>

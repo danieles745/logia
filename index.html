@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121110">
+  <title>LOGIA · Teusaquillo Parkway</title>
+  <meta name="description" content="Comunidad cervecera y cultural de Teusaquillo – Parkway. Obtén tu credencial y sella tu pasaporte en la Ruta Cervecera.">
+  <link rel="stylesheet" href="assets/logia.css">
+</head>
+<body>
+<main class="wrap">
+
+  <section id="portada">
+    <div class="emblema" id="em1"></div>
+    <h1>LOGIA</h1>
+    <p class="kicker">TEUSAQUILLO · PARKWAY</p>
+    <p class="lema">Una comunidad. Un territorio. Una credencial para pertenecer a la Ruta Cervecera de Bogotá.</p>
+    <button class="btn btn-rojo" onclick="ver('formulario')">UNIRME A LA COMUNIDAD</button>
+    <p class="nota" id="yaMiembro">Credencial gratuita · Solo mayores de 18 años</p>
+  </section>
+
+  <section id="formulario" class="oculto">
+    <div class="emblema chico" id="em2"></div>
+    <h2 class="serif titulo">Tu credencial</h2>
+    <form id="f">
+      <label for="alias">NOMBRE O ALIAS</label>
+      <input id="alias" maxlength="40" autocomplete="given-name" required>
+      <label for="edad">EDAD</label>
+      <input id="edad" type="number" inputmode="numeric" min="18" max="110" required>
+      <label for="ciudad">CIUDAD DE RESIDENCIA</label>
+      <input id="ciudad" maxlength="40" autocomplete="address-level2" required>
+      <div class="check">
+        <input id="acepta" type="checkbox" required>
+        <span>Autorizo el tratamiento de mis datos según la <a href="privacidad.html" target="_blank">política de tratamiento de datos</a> de la Logia.</span>
+      </div>
+      <button id="enviar" class="btn btn-rojo" type="submit">OBTENER MI CREDENCIAL</button>
+      <p id="err" class="error"></p>
+    </form>
+  </section>
+
+  <section id="bienvenida" class="oculto">
+    <p class="kicker" style="margin:0 0 18px">BIENVENIDO A LA LOGIA</p>
+    <div id="tarjeta"></div>
+    <div style="margin-top:22px" id="acciones"></div>
+    <p class="nota">Guarda tu credencial en el teléfono. En cada local de la ruta escanea el código de la Logia para sellar tu pasaporte.</p>
+  </section>
+
+</main>
+<script src="assets/qrcode.js"></script>
+<script src="assets/logia.js"></script>
+<script>
+  document.getElementById('em1').innerHTML = LOGIA.emblema();
+  document.getElementById('em2').innerHTML = LOGIA.emblema();
+
+  function ver(id) {
+    ['portada', 'formulario', 'bienvenida'].forEach(function (s) { document.getElementById(s).classList.toggle('oculto', s !== id); });
+    window.scrollTo(0, 0);
+  }
+
+  var guardada = LOGIA.identidad();
+  if (guardada) document.getElementById('yaMiembro').innerHTML = '¿Ya eres miembro? <a href="' + LOGIA.credUrl(guardada) + '">Abrir mi credencial</a>';
+  if (new URLSearchParams(location.search).get('unirme')) ver('formulario');
+
+  document.getElementById('f').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var btn = document.getElementById('enviar'), err = document.getElementById('err');
+    err.textContent = '';
+    var d = {
+      alias: document.getElementById('alias').value,
+      edad: document.getElementById('edad').value,
+      ciudad: document.getElementById('ciudad').value,
+      acepta: document.getElementById('acepta').checked
+    };
+    if (parseInt(d.edad, 10) < 18) { err.textContent = 'La Logia es solo para mayores de 18 años.'; return; }
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+    LOGIA.api('registrar', d).then(function (r) {
+      var id = { m: r.m, t: r.t };
+      LOGIA.guardar(r.m, r.t);
+      // si llegó escaneando el QR de un local, vuelve a sellar
+      var pend = null; try { pend = JSON.parse(localStorage.getItem('logia_pendiente') || 'null'); } catch (e) {}
+      if (pend) { try { localStorage.removeItem('logia_pendiente'); } catch (e) {} location.href = 'sello.html?v=' + pend.v + '&k=' + pend.k; return; }
+      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(r.credencial, id);
+      document.getElementById('acciones').innerHTML = LOGIA.botonesWallet(r.credencial) +
+        (r.credencial.whatsapp ? '<a class="btn btn-rojo" href="' + r.credencial.whatsapp + '">UNIRME AL CANAL DE WHATSAPP</a>' : '') +
+        '<a class="btn btn-linea" href="' + LOGIA.credUrl(id) + '">Abrir mi credencial</a>';
+      ver('bienvenida');
+    }).catch(function (e) {
+      btn.disabled = false; btn.textContent = 'OBTENER MI CREDENCIAL';
+      err.textContent = e.message;
+    });
+  });
+</script>
+</body>
+</html>

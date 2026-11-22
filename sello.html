@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121110">
+  <title>Sella tu pasaporte · LOGIA</title>
+  <link rel="stylesheet" href="assets/logia.css">
+</head>
+<body>
+<main class="wrap">
+  <div id="carga" style="text-align:center;padding:80px 0"><span class="spinner"></span><p class="nota">Sellando tu pasaporte…</p></div>
+
+  <!-- Sellado -->
+  <section id="ok" class="oculto" style="text-align:center">
+    <p class="kicker" id="okTitulo">PASAPORTE SELLADO</p>
+    <div class="sello-grande" id="sello"></div>
+    <h2 class="serif titulo" id="okLocal"></h2>
+    <p class="lema" id="okTexto" style="margin:12px auto 26px"></p>
+    <div id="tarjeta" style="text-align:left"></div>
+  </section>
+
+  <!-- No identificado -->
+  <section id="quien" class="oculto">
+    <div class="emblema" id="em"></div>
+    <p class="kicker">ESTÁS EN</p>
+    <h2 class="serif titulo" id="qLocal" style="margin-top:8px"></h2>
+    <p class="lema">Sella tu pasaporte de la Ruta Cervecera.</p>
+    <a class="btn btn-rojo" id="qUnirme" href="index.html?unirme=1">UNIRME Y RECIBIR MI SELLO</a>
+    <button class="btn btn-linea" onclick="document.getElementById('qForm').classList.toggle('oculto')">Ya soy miembro</button>
+    <div id="qForm" class="oculto">
+      <label for="rm">NÚMERO DE MIEMBRO</label>
+      <input id="rm" placeholder="LG-0001" autocapitalize="characters">
+      <label for="rc">CÓDIGO DE TU TARJETA</label>
+      <input id="rc" maxlength="6" autocapitalize="characters">
+      <button class="btn btn-rojo" style="margin-top:20px" id="rb">SELLAR</button>
+    </div>
+    <p id="err" class="error"></p>
+  </section>
+
+  <section id="malo" class="oculto" style="text-align:center;padding-top:60px">
+    <h2 class="serif titulo">Código no válido</h2>
+    <p class="lema">Escanea de nuevo el código de la Logia en el local.</p>
+  </section>
+</main>
+<script src="assets/qrcode.js"></script>
+<script src="assets/logia.js"></script>
+<script>
+  var p = new URLSearchParams(location.search), V = p.get('v'), K = p.get('k');
+  document.getElementById('em').innerHTML = LOGIA.emblema();
+  function solo(id) { ['carga', 'ok', 'quien', 'malo'].forEach(function (s) { document.getElementById(s).classList.toggle('oculto', s !== id); }); }
+
+  function sellar(id) {
+    solo('carga');
+    LOGIA.api('sellar', { m: id.m, t: id.t, v: V, k: K }).then(function (r) {
+      var c = r.credencial, hechos = c.locales.filter(function (l) { return l.visitado; }).length;
+      document.getElementById('sello').innerHTML = LOGIA.selloSVG(r.local, r.fecha);
+      document.getElementById('okTitulo').textContent = r.nuevo ? 'PASAPORTE SELLADO' : 'YA TIENES EL SELLO DE HOY';
+      document.getElementById('okLocal').textContent = r.local;
+      document.getElementById('okTexto').textContent = hechos === c.locales.length
+        ? '¡Completaste la Ruta Cervecera! Eres Explorador de la Logia.'
+        : 'Llevas ' + hechos + ' de ' + c.locales.length + ' sellos en la Ruta Cervecera.';
+      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c, id);
+      if (navigator.vibrate) navigator.vibrate(60);
+      solo('ok');
+    }).catch(function (e) {
+      if (/credencial/i.test(e.message)) { try { localStorage.removeItem('logia_id'); } catch (x) {} preguntar(); }
+      else solo('malo');
+    });
+  }
+
+  function preguntar() {
+    LOGIA.api('local', { v: V, k: K }).then(function (l) {
+      document.getElementById('qLocal').textContent = l.nombre;
+      try { localStorage.setItem('logia_pendiente', JSON.stringify({ v: V, k: K })); } catch (e) {}
+      solo('quien');
+    }).catch(function () { solo('malo'); });
+  }
+
+  document.getElementById('rb').onclick = function () {
+    var err = document.getElementById('err'); err.textContent = '';
+    LOGIA.api('recuperar', { m: document.getElementById('rm').value, codigo: document.getElementById('rc').value })
+      .then(function (r) { LOGIA.guardar(r.m, r.t); try { localStorage.removeItem('logia_pendiente'); } catch (e) {} sellar(r); })
+      .catch(function (e) { err.textContent = e.message; });
+  };
+
+  if (!V || !K) solo('malo');
+  else { var id = LOGIA.identidad(); if (id) sellar(id); else preguntar(); }
+</script>
+</body>
+</html>

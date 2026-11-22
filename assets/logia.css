@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --negro: #121110; --carbon: #1B1A18; --linea: #34312C;
+  --marfil: #F3EBDD; --papel: #EFE5D2; --tinta: #2A2622;
+  --rojo: #B3261E; --oro: #C9A227; --oro-suave: #8E7524; --gris: #8C857A;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--negro); color: var(--marfil);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif; min-height: 100vh;
+  background-image: radial-gradient(circle at 50% -20%, #2a2316 0%, transparent 55%);
+}
+.wrap { max-width: 440px; margin: 0 auto; padding: 36px 22px 64px; }
+.oculto { display: none !important; }
+
+/* Emblema */
+.emblema { width: 112px; height: 112px; margin: 0 auto 18px; display: block; }
+.emblema.chico { width: 64px; height: 64px; margin-bottom: 10px; }
+
+h1, .serif { font-family: 'DM Serif Display', serif; font-weight: 400; }
+h1 { font-size: 54px; letter-spacing: .16em; text-align: center; line-height: 1; padding-left: .16em; }
+.kicker { text-align: center; color: var(--oro); font-size: 11px; letter-spacing: .34em; margin-top: 10px; }
+.lema { text-align: center; opacity: .82; margin: 26px auto 32px; line-height: 1.6; max-width: 320px; }
+.titulo { font-size: 34px; letter-spacing: .02em; text-align: center; }
+
+/* Botones */
+.btn {
+  display: block; width: 100%; padding: 18px; border: 0; border-radius: 8px; cursor: pointer;
+  font: 600 15px 'IBM Plex Sans', sans-serif; letter-spacing: .1em; text-align: center; text-decoration: none;
+  transition: transform .08s ease, opacity .2s;
+}
+.btn:active { transform: scale(.985); }
+.btn + .btn { margin-top: 12px; }
+.btn:disabled { opacity: .55; }
+.btn-rojo { background: var(--rojo); color: var(--marfil); font-size: 17px; padding: 21px; box-shadow: 0 10px 24px rgba(179,38,30,.28); }
+.btn-claro { background: var(--marfil); color: var(--negro); letter-spacing: .04em; }
+.btn-linea { background: transparent; color: var(--marfil); border: 1px solid var(--linea); letter-spacing: .04em; }
+.btn-wallet { display: flex; align-items: center; justify-content: center; gap: 10px; background: #000; color: #fff; border: 1px solid #3d3d3d; letter-spacing: .02em; }
+
+/* Formularios */
+label { display: block; font-size: 11px; letter-spacing: .22em; color: var(--oro); margin: 20px 0 8px; }
+input, select {
+  width: 100%; padding: 15px 14px; border-radius: 8px; border: 1px solid var(--linea);
+  background: var(--carbon); color: var(--marfil); font: 16px 'IBM Plex Sans', sans-serif;
+}
+input:focus { outline: 2px solid var(--oro-suave); border-color: transparent; }
+.check { display: flex; gap: 12px; align-items: flex-start; margin: 22px 0 26px; font-size: 13px; line-height: 1.5; opacity: .85; }
+.check input { width: 20px; height: 20px; flex: none; margin-top: 1px; accent-color: var(--rojo); }
+a { color: var(--oro); }
+.error { color: #ff8a80; font-size: 14px; margin-top: 14px; min-height: 18px; text-align: center; }
+.nota { font-size: 12px; color: var(--gris); text-align: center; margin-top: 22px; line-height: 1.55; }
+.spinner { width: 20px; height: 20px; border: 3px solid rgba(243,235,221,.3); border-top-color: var(--marfil); border-radius: 50%; animation: g .8s linear infinite; display: inline-block; vertical-align: middle; }
+@keyframes g { to { transform: rotate(360deg); } }
+
+/* ===================== Tarjeta de miembro ===================== */
+.tarjeta {
+  position: relative; border-radius: 18px; overflow: hidden; color: var(--marfil);
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(201,162,39,.16), transparent 60%),
+    linear-gradient(160deg, #1d1b18 0%, #0e0d0c 100%);
+  box-shadow: 0 24px 50px rgba(0,0,0,.55), inset 0 0 0 1px rgba(201,162,39,.35);
+  padding: 22px 22px 20px;
+}
+.tarjeta::before { /* guilloché */
+  content: ''; position: absolute; inset: 0; opacity: .09; pointer-events: none;
+  background-image: repeating-radial-gradient(circle at 85% 18%, transparent 0 7px, var(--oro) 7px 8px);
+}
+.tarjeta::after { content: ''; position: absolute; inset: 7px; border: 1px solid rgba(201,162,39,.28); border-radius: 13px; pointer-events: none; }
+.t-cab { display: flex; justify-content: space-between; align-items: center; position: relative; }
+.t-marca { font-family: 'DM Serif Display', serif; font-size: 25px; letter-spacing: .2em; }
+.t-mini { font-size: 9.5px; letter-spacing: .3em; color: var(--oro); }
+.t-banda { height: 3px; background: linear-gradient(90deg, var(--rojo), var(--rojo) 60%, var(--oro)); margin: 16px -22px 0; position: relative; }
+.t-cuerpo { display: flex; gap: 16px; align-items: flex-end; margin-top: 18px; position: relative; }
+.t-datos { flex: 1; min-width: 0; }
+.t-cat { display: inline-block; font-size: 9.5px; letter-spacing: .26em; color: var(--negro); background: var(--oro); padding: 4px 8px 3px; border-radius: 3px; }
+.t-nombre { font-family: 'DM Serif Display', serif; font-size: 30px; line-height: 1.05; margin: 10px 0 14px; word-wrap: break-word; }
+.t-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.t-campo span { display: block; font-size: 9px; letter-spacing: .24em; color: var(--gris); }
+.t-campo b { display: block; white-space: nowrap; font: 500 14px 'IBM Plex Mono', monospace; margin-top: 3px; letter-spacing: .03em; }
+.t-qr { width: 112px; flex: none; background: var(--marfil); border-radius: 10px; padding: 8px; }
+.t-qr svg { width: 100%; height: auto; display: block; }
+.t-pie { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; position: relative; font-size: 10px; letter-spacing: .22em; color: var(--gris); }
+.t-pie b { color: var(--marfil); font: 500 13px 'IBM Plex Mono', monospace; letter-spacing: .04em; }
+.progreso { height: 4px; background: var(--linea); border-radius: 2px; margin-top: 8px; overflow: hidden; position: relative; }
+.progreso i { display: block; height: 100%; background: linear-gradient(90deg, var(--rojo), var(--oro)); border-radius: 2px; }
+
+/* ===================== Mapa de la ruta ===================== */
+.ruta { margin-top: 28px; background: var(--papel); color: var(--tinta); border-radius: 18px; padding: 20px 18px 18px; box-shadow: 0 18px 40px rgba(0,0,0,.4); }
+.ruta-cab { display: flex; justify-content: space-between; align-items: baseline; }
+.ruta-cab h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 24px; }
+.ruta-cab span { font-size: 10px; letter-spacing: .26em; color: #7a6f5f; }
+.mapa { margin: 14px -6px 6px; }
+.mapa svg { width: 100%; height: auto; display: block; }
+.lista { list-style: none; margin-top: 10px; }
+.lista li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #dccfb6; }
+.lista .num { width: 30px; height: 30px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 600 12px 'IBM Plex Mono', monospace; border: 1.5px dashed #9d9180; color: #7a6f5f; }
+.lista li.ok .num { background: var(--rojo); border: 0; color: var(--marfil); }
+.lista .info { flex: 1; min-width: 0; }
+.lista .info b { display: block; font-size: 15px; }
+.lista .info small { color: #7a6f5f; font-size: 12px; }
+.lista .ir { font-size: 12px; font-weight: 600; color: var(--rojo); text-decoration: none; white-space: nowrap; }
+
+/* ===================== Sello ===================== */
+.sello-grande { width: 230px; height: 230px; margin: 10px auto 18px; display: block; }
+.estampar { animation: estampar .55s cubic-bezier(.2,1.4,.4,1) both; transform-origin: center; }
+@keyframes estampar { 0% { transform: scale(2.2) rotate(-24deg); opacity: 0; } 100% { transform: scale(1) rotate(-9deg); opacity: 1; } }
+
+/* ===================== Distintivo imprimible ===================== */
+.distintivo { width: 100mm; min-height: 148mm; margin: 24px auto; background: var(--negro); color: var(--marfil); border-radius: 6mm; padding: 9mm 8mm; text-align: center; position: relative; box-shadow: inset 0 0 0 1.2mm var(--oro); }
+.distintivo .qrbox { background: var(--marfil); border-radius: 4mm; padding: 5mm; width: 62mm; margin: 6mm auto 5mm; }
+.distintivo .qrbox svg { width: 100%; height: auto; display: block; }
+@media print { body { background: #fff; } .no-print { display: none; } .distintivo { margin: 0 auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
