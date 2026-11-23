@@ -80,7 +80,7 @@
       // si llegó escaneando el QR de un local, vuelve a sellar
       var pend = null; try { pend = JSON.parse(localStorage.getItem('logia_pendiente') || 'null'); } catch (e) {}
       if (pend) { try { localStorage.removeItem('logia_pendiente'); } catch (e) {} location.href = 'sello.html?v=' + pend.v + '&k=' + pend.k; return; }
-      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(r.credencial, id);
+      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(r.credencial) + LOGIA.bloqueCodigo(r.credencial);
       document.getElementById('acciones').innerHTML = LOGIA.botonesWallet(r.credencial) +
         (r.credencial.whatsapp ? '<a class="btn btn-rojo" href="' + r.credencial.whatsapp + '">UNIRME AL CANAL DE WHATSAPP</a>' : '') +
         '<a class="btn btn-linea" href="' + LOGIA.credUrl(id) + '">Abrir mi credencial</a>';

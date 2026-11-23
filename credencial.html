@@ -41,7 +41,7 @@
 
   function cargar(id) {
     LOGIA.api('credencial', id).then(function (c) {
-      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c, id);
+      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c) + LOGIA.bloqueCodigo(c);
       document.getElementById('acciones').innerHTML = LOGIA.botonesWallet(c) +
         (c.whatsapp ? '<a class="btn btn-rojo" href="' + c.whatsapp + '">CANAL DE WHATSAPP</a>' : '');
       document.getElementById('carga').classList.add('oculto');

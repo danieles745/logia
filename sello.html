@@ -60,7 +60,7 @@
       document.getElementById('okTexto').textContent = hechos === c.locales.length
         ? '¡Completaste la Ruta Cervecera! Eres Explorador de la Logia.'
         : 'Llevas ' + hechos + ' de ' + c.locales.length + ' sellos en la Ruta Cervecera.';
-      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c, id);
+      document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c);
       if (navigator.vibrate) navigator.vibrate(60);
       solo('ok');
     }).catch(function (e) {

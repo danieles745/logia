@@ -29,6 +29,9 @@ LOGIA.identidad = function () {
   try { return JSON.parse(localStorage.getItem('logia_id') || 'null'); } catch (e) { return null; }
 };
 LOGIA.credUrl = function (id) { return 'credencial.html?m=' + encodeURIComponent(id.m) + '&t=' + encodeURIComponent(id.t); };
+LOGIA.base = function () { return location.origin + location.pathname.replace(/[^/]*$/, ''); };
+// El QR de la tarjeta abre la vista pública: no contiene el acceso privado del miembro
+LOGIA.verUrl = function (c) { return LOGIA.base() + 'ver.html?p=' + encodeURIComponent(c.publico || ''); };
 
 /* ---------------- Utilidades ---------------- */
 LOGIA.esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
@@ -154,10 +157,10 @@ LOGIA.mesAnio = function (f) {
 };
 
 /* ---------------- Tarjeta completa ---------------- */
-LOGIA.tarjeta = function (c, id) {
+LOGIA.tarjeta = function (c) {
   c.locales = LOGIA.ordenRuta(c.locales);
   var total = c.locales.length, hechos = c.locales.filter(function (l) { return l.visitado; }).length;
-  var url = location.origin + location.pathname.replace(/[^/]*$/, '') + LOGIA.credUrl(id);
+  var url = LOGIA.verUrl(c);
   return '<div class="tarjeta">' +
     '<div class="t-cab"><div><div class="t-marca">LOGIA</div><div class="t-mini">BOGOTÁ · COLOMBIA</div></div>' +
     '<div style="width:46px">' + LOGIA.emblema() + '</div></div>' +
@@ -169,7 +172,7 @@ LOGIA.tarjeta = function (c, id) {
         '<div class="t-campo"><span>MIEMBRO No.</span><b>' + LOGIA.esc(c.id) + '</b></div>' +
         '<div class="t-campo"><span>DESDE</span><b>' + LOGIA.esc(LOGIA.mesAnio(c.desde)) + '</b></div>' +
         '<div class="t-campo"><span>CIUDAD</span><b>' + LOGIA.esc(c.ciudad) + '</b></div>' +
-        '<div class="t-campo"><span>CÓDIGO</span><b>' + LOGIA.esc(c.codigo) + '</b></div>' +
+        '<div class="t-campo"><span>SELLOS</span><b>' + hechos + ' / ' + total + '</b></div>' +
       '</div></div>' +
       '<div class="t-qr">' + LOGIA.qr(url) + '</div></div>' +
     '<div class="t-pie"><span>PASAPORTE · RUTA CERVECERA</span><b>' + hechos + ' / ' + total + '</b></div>' +
@@ -178,6 +181,15 @@ LOGIA.tarjeta = function (c, id) {
     '<section class="ruta"><div class="ruta-cab"><h2>Ruta Cervecera</h2><span>' + hechos + ' DE ' + total + ' SELLOS</span></div>' +
     '<div class="mapa">' + LOGIA.mapaRuta(c.locales) + '</div>' +
     '<ul class="lista">' + LOGIA.listaRuta(c.locales) + '</ul></section>';
+};
+
+/* Código de recuperación: oculto hasta que el miembro lo pide */
+LOGIA.bloqueCodigo = function (c) {
+  if (!c.codigo) return '';
+  return '<div class="codigo-rec"><span>CÓDIGO PARA ABRIR TU CREDENCIAL EN OTRO TELÉFONO</span>' +
+    '<b id="codRec" data-c="' + LOGIA.esc(c.codigo) + '">••••••</b>' +
+    '<button type="button" onclick="var e=document.getElementById(\'codRec\');var v=e.textContent.indexOf(\'•\')>-1;e.textContent=v?e.dataset.c:\'••••••\';this.textContent=v?\'Ocultar\':\'Mostrar\';">Mostrar</button>' +
+    '<small>No lo compartas. Tu QR sí lo puedes mostrar: solo abre tu vista pública.</small></div>';
 };
 
 LOGIA.botonesWallet = function (c) {

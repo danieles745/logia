@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121110">
+  <meta name="robots" content="noindex">
+  <title>Miembro de la Logia · LOGIA</title>
+  <link rel="stylesheet" href="assets/logia.css">
+</head>
+<body>
+<main class="wrap">
+  <div id="carga" style="text-align:center;padding:80px 0"><span class="spinner"></span></div>
+  <div id="contenido" class="oculto">
+    <p class="publica-nota">MIEMBRO DE LA LOGIA</p>
+    <div id="tarjeta"></div>
+    <a class="btn btn-rojo" style="margin-top:24px" href="index.html?unirme=1">UNIRME A LA COMUNIDAD</a>
+  </div>
+  <section id="malo" class="oculto" style="text-align:center;padding-top:60px">
+    <h2 class="serif titulo">Credencial no encontrada</h2>
+    <p class="lema">Escanea de nuevo el código de la tarjeta.</p>
+  </section>
+</main>
+<script src="assets/qrcode.js"></script>
+<script src="assets/logia.js"></script>
+<script>
+  var p = new URLSearchParams(location.search).get('p');
+  function mostrar(id) { ['carga', 'contenido', 'malo'].forEach(function (s) { document.getElementById(s).classList.toggle('oculto', s !== id); }); }
+  if (!p) mostrar('malo');
+  else LOGIA.api('publica', { p: p }).then(function (c) {
+    document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c);
+    mostrar('contenido');
+  }).catch(function () { mostrar('malo'); });
+</script>
+</body>
+</html>
