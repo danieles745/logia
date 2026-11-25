@@ -1,6 +1,16 @@
 /* LOGIA — utilidades compartidas del sitio */
 
 var LOGIA = {
+  /* ===== Marca: cambiar aquí nombre, logo y enlaces ===== */
+  MARCA: {
+    nombre: 'LOGIA',                 // nombre definitivo de la comunidad
+    logo: '',                        // ruta del logo, ej. 'assets/logo.svg'; vacío = emblema provisional
+    lema: 'Una comunidad. Un territorio. Una credencial para pertenecer a la Ruta Cervecera de Bogotá.',
+    instagram: '',                   // ej. 'https://instagram.com/logia.bogota'
+  },
+  WHATSAPP: '',                      // enlace del canal de WhatsApp
+  GALERIA: [                         // fotos: { src: 'assets/galeria/1.jpg', pie: 'Texto' }
+  ],
   // URL de la aplicación web de Apps Script (termina en /exec)
   API_URL: 'https://script.google.com/macros/s/AKfycbyLC4KxzhcCPhMnKTfwFNh46FoDs9Gfkwrn-bks7fBf_yyw6w4t1vKds-oZaooTniVW/exec',
   CONTACTO: 'logia.bogota@gmail.com',
@@ -156,14 +166,69 @@ LOGIA.mesAnio = function (f) {
   var p = String(f || '').split('-'); return p.length > 1 ? m[parseInt(p[1], 10) - 1] + ' ' + p[0] : f;
 };
 
+/* ---------------- Mapa satelital (Leaflet + Esri World Imagery) ---------------- */
+LOGIA._mapas = [];
+LOGIA.contenedorMapa = function (locales, alto) {
+  LOGIA._mapas.push(locales);
+  return '<div class="mapa-sat" data-mapa="' + (LOGIA._mapas.length - 1) + '" style="height:' + (alto || 380) + 'px"></div>';
+};
+LOGIA.activarMapas = function () {
+  document.querySelectorAll('.mapa-sat[data-mapa]').forEach(function (el) {
+    var locales = LOGIA._mapas[+el.getAttribute('data-mapa')];
+    el.removeAttribute('data-mapa');
+    LOGIA.mapaSatelital(el, locales || []);
+  });
+};
+LOGIA.mapaSatelital = function (el, locales) {
+  var pts = LOGIA.ordenRuta(locales).filter(function (l) { return l.lat && l.lng; });
+  if (typeof L === 'undefined' || !pts.length) { el.innerHTML = LOGIA.mapaRuta(locales); el.style.height = 'auto'; return; }
+  var map = L.map(el, { scrollWheelZoom: false, tap: true, attributionControl: true, zoomControl: true });
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Powered by Esri · Imágenes: Esri, Maxar, Earthstar Geographics y GIS User Community'
+  }).addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, opacity: 0.55
+  }).addTo(map);
+  if (pts.length > 1) {
+    L.polyline(pts.map(function (l) { return [l.lat, l.lng]; }), { color: '#C9A227', weight: 3, dashArray: '6 8', opacity: .95 }).addTo(map);
+  }
+  pts.forEach(function (l) {
+    var n = LOGIA.ordenRuta(locales).indexOf(l) + 1;
+    var html = '<div class="pin' + (l.visitado ? ' pin-ok' : '') + '"><span>' + (l.visitado ? '✓' : n) + '</span></div>';
+    var icon = L.divIcon({ className: 'pin-wrap', html: html, iconSize: [38, 38], iconAnchor: [19, 19], popupAnchor: [0, -18] });
+    var ir = 'https://www.google.com/maps/dir/?api=1&destination=' + l.lat + ',' + l.lng;
+    L.marker([l.lat, l.lng], { icon: icon, title: l.nombre }).addTo(map).bindPopup(
+      '<div class="pop"><b>' + LOGIA.esc(l.nombre) + '</b><small>' + LOGIA.esc(l.direccion || '') + '</small>' +
+      (l.distintivo ? '<em>' + LOGIA.esc(l.distintivo) + '</em>' : '') +
+      (l.visitado ? '<i>Sellado el ' + LOGIA.esc(l.visitado) + '</i>' : '') +
+      '<a href="' + ir + '" target="_blank" rel="noopener">Cómo llegar →</a></div>');
+  });
+  if (pts.length === 1) map.setView([pts[0].lat, pts[0].lng], 17);
+  else map.fitBounds(L.latLngBounds(pts.map(function (l) { return [l.lat, l.lng]; })), { padding: [48, 48], maxZoom: 18 });
+  setTimeout(function () { map.invalidateSize(); }, 200);
+  return map;
+};
+
+/* ---------------- Wallet: enlace según el teléfono ---------------- */
+LOGIA.enlaceWallet = function (c) {
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) return c.apple || '';
+  if (/Android/i.test(navigator.userAgent)) return c.google || c.apple || '';
+  return '';
+};
+
+/* ---------------- Marca ---------------- */
+LOGIA.logoHTML = function () {
+  return LOGIA.MARCA.logo ? '<img src="' + LOGIA.MARCA.logo + '" alt="' + LOGIA.esc(LOGIA.MARCA.nombre) + '">' : LOGIA.emblema();
+};
+
 /* ---------------- Tarjeta completa ---------------- */
-LOGIA.tarjeta = function (c) {
+LOGIA.tarjetaSola = function (c) {
   c.locales = LOGIA.ordenRuta(c.locales);
   var total = c.locales.length, hechos = c.locales.filter(function (l) { return l.visitado; }).length;
   var url = LOGIA.verUrl(c);
   return '<div class="tarjeta">' +
-    '<div class="t-cab"><div><div class="t-marca">LOGIA</div><div class="t-mini">BOGOTÁ · COLOMBIA</div></div>' +
-    '<div style="width:46px">' + LOGIA.emblema() + '</div></div>' +
+    '<div class="t-cab"><div><div class="t-marca">' + LOGIA.esc(LOGIA.MARCA.nombre) + '</div><div class="t-mini">BOGOTÁ · COLOMBIA</div></div>' +
+    '<div class="t-logo">' + LOGIA.logoHTML() + '</div></div>' +
     '<div class="t-banda"></div>' +
     '<div class="t-cuerpo"><div class="t-datos">' +
       '<span class="t-cat">' + LOGIA.esc(c.categoria.toUpperCase()) + '</span>' +
@@ -177,9 +242,15 @@ LOGIA.tarjeta = function (c) {
       '<div class="t-qr">' + LOGIA.qr(url) + '</div></div>' +
     '<div class="t-pie"><span>PASAPORTE · RUTA CERVECERA</span><b>' + hechos + ' / ' + total + '</b></div>' +
     '<div class="progreso"><i style="width:' + (total ? Math.round(hechos / total * 100) : 0) + '%"></i></div>' +
-    '</div>' +
+    '</div>';
+};
+
+LOGIA.tarjeta = function (c) {
+  var html = LOGIA.tarjetaSola(c);
+  var total = c.locales.length, hechos = c.locales.filter(function (l) { return l.visitado; }).length;
+  return html +
     '<section class="ruta"><div class="ruta-cab"><h2>Ruta Cervecera</h2><span>' + hechos + ' DE ' + total + ' SELLOS</span></div>' +
-    '<div class="mapa">' + LOGIA.mapaRuta(c.locales) + '</div>' +
+    '<div class="mapa">' + LOGIA.contenedorMapa(c.locales, 340) + '</div>' +
     '<ul class="lista">' + LOGIA.listaRuta(c.locales) + '</ul></section>';
 };
 

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#121110">
   <title>Mi credencial · LOGIA</title>
+  <link rel="stylesheet" href="assets/leaflet/leaflet.css">
   <link rel="stylesheet" href="assets/logia.css">
 </head>
 <body>
@@ -13,6 +14,14 @@
   <div id="contenido" class="oculto">
     <div id="tarjeta"></div>
     <div style="margin-top:22px" id="acciones"></div>
+    <div class="salir">
+      <button class="enlace-sutil" onclick="document.getElementById('salirCaja').classList.toggle('oculto')">Salir de la comunidad</button>
+      <div id="salirCaja" class="salir-caja oculto">
+        <p>Al salir se borran tus datos y tus sellos, y tu credencial queda desactivada en el Wallet. No se puede deshacer.</p>
+        <button class="btn btn-rojo" id="salirBtn">SÍ, QUIERO SALIR</button>
+        <p id="salirMsg" class="error"></p>
+      </div>
+    </div>
   </div>
 
   <!-- Recuperar en un teléfono nuevo -->
@@ -30,6 +39,7 @@
   </section>
 </main>
 <script src="assets/qrcode.js"></script>
+<script src="assets/leaflet/leaflet.js"></script>
 <script src="assets/logia.js"></script>
 <script>
   document.getElementById('em').innerHTML = LOGIA.emblema();
@@ -42,6 +52,8 @@
   function cargar(id) {
     LOGIA.api('credencial', id).then(function (c) {
       document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c) + LOGIA.bloqueCodigo(c);
+      LOGIA.activarMapas();
+      ID = id;
       document.getElementById('acciones').innerHTML = LOGIA.botonesWallet(c) +
         (c.whatsapp ? '<a class="btn btn-rojo" href="' + c.whatsapp + '">CANAL DE WHATSAPP</a>' : '');
       document.getElementById('carga').classList.add('oculto');
@@ -50,8 +62,20 @@
     }).catch(mostrarRecuperar);
   }
 
+  var ID = null;
   var id = LOGIA.identidad();
   if (id) cargar(id); else mostrarRecuperar();
+
+  document.getElementById('salirBtn').onclick = function () {
+    var b = this, msg = document.getElementById('salirMsg');
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span>';
+    LOGIA.api('salir', { m: ID.m, t: ID.t, confirmar: true }).then(function () {
+      try { localStorage.removeItem('logia_id'); } catch (e) {}
+      document.getElementById('contenido').innerHTML = '<div style="text-align:center;padding:70px 0"><h2 class="serif titulo">Saliste de la comunidad</h2>' +
+        '<p class="lema">Tus datos fueron borrados y tu credencial quedó desactivada. Puedes eliminarla de tu Wallet. Las puertas siguen abiertas.</p>' +
+        '<a class="btn btn-linea" href="index.html">Volver al inicio</a></div>';
+    }).catch(function (e) { b.disabled = false; b.textContent = 'SÍ, QUIERO SALIR'; msg.textContent = e.message; });
+  };
 
   document.getElementById('rb').onclick = function () {
     var err = document.getElementById('rerr'); err.textContent = '';

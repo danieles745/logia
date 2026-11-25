@@ -4,87 +4,267 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#121110">
-  <title>LOGIA · Teusaquillo Parkway</title>
-  <meta name="description" content="Comunidad cervecera y cultural de Teusaquillo – Parkway. Obtén tu credencial y sella tu pasaporte en la Ruta Cervecera.">
+  <title>LOGIA · Ruta Cervecera de Teusaquillo – Parkway</title>
+  <meta name="description" content="Comunidad cervecera y cultural de Teusaquillo – Parkway. Obtén tu credencial, recorre la Ruta Cervecera y sella tu pasaporte en cada local.">
+  <meta property="og:title" content="LOGIA · Ruta Cervecera de Teusaquillo – Parkway">
+  <meta property="og:description" content="Credencial gratuita, pasaporte digital y mapa de la Ruta Cervecera.">
+  <link rel="stylesheet" href="assets/leaflet/leaflet.css">
   <link rel="stylesheet" href="assets/logia.css">
 </head>
 <body>
-<main class="wrap">
 
-  <section id="portada">
-    <div class="emblema" id="em1"></div>
-    <h1>LOGIA</h1>
-    <p class="kicker">TEUSAQUILLO · PARKWAY</p>
-    <p class="lema">Una comunidad. Un territorio. Una credencial para pertenecer a la Ruta Cervecera de Bogotá.</p>
-    <button class="btn btn-rojo" onclick="ver('formulario')">UNIRME A LA COMUNIDAD</button>
-    <p class="nota" id="yaMiembro">Credencial gratuita · Solo mayores de 18 años</p>
-  </section>
+<header class="top">
+  <div class="top-in">
+    <a class="marca" href="#inicio"><span class="logo" id="logoTop"></span><b id="nombreTop">LOGIA</b></a>
+    <nav class="menu" id="menu">
+      <a href="#como">Cómo funciona</a>
+      <a href="#ruta">La Ruta</a>
+      <a href="#pasaporte">Pasaporte</a>
+      <a href="#galeria">Galería</a>
+      <a href="#comunidad">Comunidad</a>
+      <a href="#locales">Para locales</a>
+    </nav>
+    <button class="hamb" id="hamb" aria-label="Abrir menú">☰</button>
+    <a class="cta" id="ctaTop" href="#" onclick="abrirRegistro(event)">UNIRME</a>
+  </div>
+</header>
 
-  <section id="formulario" class="oculto">
-    <div class="emblema chico" id="em2"></div>
-    <h2 class="serif titulo">Tu credencial</h2>
-    <form id="f">
-      <label for="alias">NOMBRE O ALIAS</label>
-      <input id="alias" maxlength="40" autocomplete="given-name" required>
-      <label for="edad">EDAD</label>
-      <input id="edad" type="number" inputmode="numeric" min="18" max="110" required>
-      <label for="ciudad">CIUDAD DE RESIDENCIA</label>
-      <input id="ciudad" maxlength="40" autocomplete="address-level2" required>
-      <div class="check">
-        <input id="acepta" type="checkbox" required>
-        <span>Autorizo el tratamiento de mis datos según la <a href="privacidad.html" target="_blank">política de tratamiento de datos</a> de la Logia.</span>
+<!-- Portada -->
+<section class="hero" id="inicio">
+  <div class="hero-in">
+    <div class="logo-grande" id="logoHero"></div>
+    <h1 id="nombreHero">LOGIA</h1>
+    <p class="kicker">TEUSAQUILLO · PARKWAY · BOGOTÁ</p>
+    <p class="lema" id="lemaHero"></p>
+    <div class="hero-btns">
+      <a class="btn btn-rojo" href="#" onclick="abrirRegistro(event)">UNIRME A LA COMUNIDAD</a>
+      <a class="btn btn-wa" id="btnWaHero" href="#comunidad">CANAL DE WHATSAPP</a>
+    </div>
+    <div class="datos">
+      <div><b id="nLocales">—</b><span>LOCALES EN LA RUTA</span></div>
+      <div><b>0 $</b><span>CREDENCIAL GRATUITA</span></div>
+      <div><b>+18</b><span>SOLO MAYORES DE EDAD</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Cómo funciona -->
+<section class="sec" id="como">
+  <div class="sec-cab">
+    <p class="kicker">CÓMO FUNCIONA</p>
+    <h2>Tres pasos para pertenecer</h2>
+    <p>Sin aplicaciones ni registros largos. Tu credencial vive en el Wallet de tu teléfono.</p>
+  </div>
+  <div class="pasos">
+    <div class="paso"><div class="n">1</div><h3>Únete</h3><p>Nombre, edad y ciudad. En menos de un minuto tienes tu número de miembro.</p></div>
+    <div class="paso"><div class="n">2</div><h3>Guarda tu credencial</h3><p>Agrégala a Apple Wallet o Google Wallet y únete al canal de la comunidad.</p></div>
+    <div class="paso"><div class="n">3</div><h3>Sella tu pasaporte</h3><p>En cada local de la ruta escanea el código de la Logia. Tu mapa y tu Wallet se actualizan solos.</p></div>
+  </div>
+</section>
+<div class="sep"></div>
+
+<!-- La Ruta -->
+<section class="sec" id="ruta">
+  <div class="sec-cab">
+    <p class="kicker">LA RUTA CERVECERA</p>
+    <h2>Teusaquillo – Parkway, local por local</h2>
+    <p>Cada punto del mapa es un local de la Logia. Recórrelos todos y obtén la insignia de Explorador.</p>
+  </div>
+  <div class="ruta-grid">
+    <div class="mapa-sat" id="mapaInicio"></div>
+    <div class="locales-lista" id="listaInicio"><p class="nota">Cargando locales…</p></div>
+  </div>
+</section>
+<div class="sep"></div>
+
+<!-- Pasaporte -->
+<section class="sec" id="pasaporte">
+  <div class="pas-grid">
+    <div>
+      <div class="sec-cab">
+        <p class="kicker">TU PASAPORTE</p>
+        <h2>Una credencial que se colecciona</h2>
+        <p>Cada sello queda en tu tarjeta, en tu mapa y en tu Wallet. Las insignias reconocen lo que vives en el barrio, no lo que compras.</p>
       </div>
-      <button id="enviar" class="btn btn-rojo" type="submit">OBTENER MI CREDENCIAL</button>
-      <p id="err" class="error"></p>
-    </form>
-  </section>
+      <div class="insignias">
+        <div class="insignia"><div class="ico">◆</div><b>Fundador</b><small>Para los primeros miembros de la Logia.</small></div>
+        <div class="insignia"><div class="ico">✦</div><b>Explorador</b><small>Sellaste todos los locales de la ruta.</small></div>
+        <div class="insignia"><div class="ico">❖</div><b>Coleccionista</b><small>Aportaste una historia o una foto al archivo.</small></div>
+        <div class="insignia"><div class="ico">✚</div><b>Colaborador</b><small>Participaste en un proyecto de la comunidad.</small></div>
+      </div>
+    </div>
+    <div id="tarjetaEjemplo"></div>
+  </div>
+</section>
+<div class="sep"></div>
 
-  <section id="bienvenida" class="oculto">
-    <p class="kicker" style="margin:0 0 18px">BIENVENIDO A LA LOGIA</p>
-    <div id="tarjeta"></div>
-    <div style="margin-top:22px" id="acciones"></div>
-    <p class="nota">Guarda tu credencial en el teléfono. En cada local de la ruta escanea el código de la Logia para sellar tu pasaporte.</p>
-  </section>
+<!-- Galería -->
+<section class="sec" id="galeria">
+  <div class="sec-cab">
+    <p class="kicker">GALERÍA</p>
+    <h2>Noches, barras y barrio</h2>
+    <p>Encuentros, catas y recorridos de la comunidad.</p>
+  </div>
+  <div class="galeria" id="galeriaGrid"></div>
+</section>
 
-</main>
+<!-- Comunidad -->
+<section class="sec" id="comunidad">
+  <div class="bloque bloque-wa">
+    <div>
+      <p class="kicker" style="text-align:left;margin:0 0 12px">COMUNIDAD</p>
+      <h2>El canal de la Logia</h2>
+      <p>Lanzamientos, catas, eventos y novedades de la ruta, directo en tu WhatsApp.</p>
+      <ul><li>Agenda de encuentros y recorridos</li><li>Nuevos locales en la ruta</li><li>Historias del barrio</li></ul>
+    </div>
+    <div><a class="btn btn-claro" id="btnWa" href="#">UNIRME AL CANAL DE WHATSAPP</a></div>
+  </div>
+</section>
+
+<!-- Para locales -->
+<section class="sec" id="locales" style="padding-top:0">
+  <div class="bloque bloque-local">
+    <div>
+      <p class="kicker" style="text-align:left;margin:0 0 12px">PARA LOCALES</p>
+      <h2>¿Tienes un local en Teusaquillo o el Parkway?</h2>
+      <p>Haz parte de la Ruta Cervecera sin costo y sin trabajo extra para tu equipo.</p>
+      <ul><li>Presencia en el mapa de la Logia</li><li>Visitantes que llegan a completar su pasaporte</li><li>Resumen mensual de visitas de miembros</li><li>Los miembros se sellan solos con el código del distintivo</li></ul>
+    </div>
+    <div><a class="btn btn-rojo" href="unir-local.html">UNIR MI LOCAL</a></div>
+  </div>
+</section>
+
+<!-- Preguntas -->
+<section class="sec faq" id="faq" style="padding-top:20px">
+  <div class="sec-cab"><p class="kicker">PREGUNTAS</p><h2>Lo que más nos preguntan</h2></div>
+  <details><summary>¿Cuánto cuesta ser miembro?</summary><p>Nada. La credencial y el pasaporte son gratuitos.</p></details>
+  <details><summary>¿Necesito instalar una aplicación?</summary><p>No. La credencial se guarda en Apple Wallet o Google Wallet y la página funciona desde el navegador del teléfono.</p></details>
+  <details><summary>¿Cómo sello mi pasaporte?</summary><p>En cada local busca el distintivo de la Logia y escanea su código con la cámara. El sello aparece en tu tarjeta, tu mapa y tu Wallet.</p></details>
+  <details><summary>¿Los sellos dan descuentos?</summary><p>No. El pasaporte reconoce tu recorrido por el barrio; las insignias celebran la experiencia, no el consumo.</p></details>
+  <details><summary>¿Cómo me retiro?</summary><p>Desde tu credencial, en "Salir de la Logia". Tus datos se borran y tu pase queda desactivado en el Wallet.</p></details>
+</section>
+
+<footer class="pie">
+  <a class="marca" href="#inicio"><span class="logo" id="logoPie"></span><b id="nombrePie">LOGIA</b></a>
+  <p>Ruta Cervecera de Teusaquillo – Parkway · Bogotá</p>
+  <p style="margin-top:10px"><a href="privacidad.html">Política de datos</a> · <a href="unir-local.html">Unir mi local</a> · <a id="igPie" href="#">Instagram</a> · <a id="mailPie" href="#">Contacto</a></p>
+  <p style="margin-top:14px;font-size:11px">Prohibida la venta de bebidas alcohólicas a menores de edad. El exceso de alcohol es perjudicial para la salud.</p>
+</footer>
+
+<!-- Registro -->
+<div class="hoja" id="hoja" onclick="if(event.target===this)cerrarRegistro()">
+  <div class="hoja-in">
+    <button class="cerrar" onclick="cerrarRegistro()" aria-label="Cerrar">×</button>
+    <section id="formulario">
+      <div class="emblema chico" id="em2"></div>
+      <h2 class="serif titulo">Tu credencial</h2>
+      <form id="f">
+        <label for="alias">NOMBRE O ALIAS</label>
+        <input id="alias" maxlength="40" autocomplete="given-name" required>
+        <label for="edad">EDAD</label>
+        <input id="edad" type="number" inputmode="numeric" min="18" max="110" required>
+        <label for="ciudad">CIUDAD DE RESIDENCIA</label>
+        <input id="ciudad" maxlength="40" autocomplete="address-level2" required>
+        <div class="check">
+          <input id="acepta" type="checkbox" required>
+          <span>Autorizo el tratamiento de mis datos según la <a href="privacidad.html" target="_blank">política de tratamiento de datos</a>.</span>
+        </div>
+        <button id="enviar" class="btn btn-rojo" type="submit">OBTENER MI CREDENCIAL</button>
+        <p id="err" class="error"></p>
+      </form>
+    </section>
+    <section id="bienvenida" class="oculto">
+      <p class="kicker" style="margin:0 0 18px">BIENVENIDO A LA COMUNIDAD</p>
+      <div id="tarjeta"></div>
+      <div style="margin-top:22px" id="acciones"></div>
+    </section>
+  </div>
+</div>
+
 <script src="assets/qrcode.js"></script>
+<script src="assets/leaflet/leaflet.js"></script>
 <script src="assets/logia.js"></script>
 <script>
-  document.getElementById('em1').innerHTML = LOGIA.emblema();
-  document.getElementById('em2').innerHTML = LOGIA.emblema();
+  var M = LOGIA.MARCA;
+  ['logoTop', 'logoHero', 'logoPie'].forEach(function (id) { document.getElementById(id).innerHTML = LOGIA.logoHTML(); });
+  ['nombreTop', 'nombreHero', 'nombrePie'].forEach(function (id) { document.getElementById(id).textContent = M.nombre; });
+  document.getElementById('lemaHero').textContent = M.lema;
+  document.getElementById('em2').innerHTML = LOGIA.logoHTML();
+  document.title = M.nombre + ' · Ruta Cervecera de Teusaquillo – Parkway';
+  var mail = document.getElementById('mailPie'); mail.href = 'mailto:' + LOGIA.CONTACTO;
+  var ig = document.getElementById('igPie'); if (M.instagram) ig.href = M.instagram; else ig.style.display = 'none';
 
-  function ver(id) {
-    ['portada', 'formulario', 'bienvenida'].forEach(function (s) { document.getElementById(s).classList.toggle('oculto', s !== id); });
-    window.scrollTo(0, 0);
-  }
+  // WhatsApp
+  ['btnWa', 'btnWaHero'].forEach(function (id) {
+    var b = document.getElementById(id);
+    if (LOGIA.WHATSAPP) { b.href = LOGIA.WHATSAPP; b.target = '_blank'; b.rel = 'noopener'; }
+    else if (id === 'btnWa') { b.textContent = 'CANAL DE WHATSAPP · MUY PRONTO'; b.removeAttribute('href'); }
+  });
 
+  // Menú móvil
+  document.getElementById('hamb').onclick = function () { document.getElementById('menu').classList.toggle('abierto'); };
+  document.querySelectorAll('#menu a').forEach(function (a) { a.onclick = function () { document.getElementById('menu').classList.remove('abierto'); }; });
+
+  // Miembro existente
   var guardada = LOGIA.identidad();
-  if (guardada) document.getElementById('yaMiembro').innerHTML = '¿Ya eres miembro? <a href="' + LOGIA.credUrl(guardada) + '">Abrir mi credencial</a>';
-  if (new URLSearchParams(location.search).get('unirme')) ver('formulario');
+  if (guardada) { var c = document.getElementById('ctaTop'); c.textContent = 'MI PASAPORTE'; c.onclick = null; c.href = LOGIA.credUrl(guardada); }
+
+  // Galería
+  (function () {
+    var g = document.getElementById('galeriaGrid'), fotos = LOGIA.GALERIA || [], h = '';
+    for (var i = 0; i < Math.max(5, fotos.length); i++) {
+      var f = fotos[i];
+      h += f ? '<figure><img src="' + f.src + '" alt="' + LOGIA.esc(f.pie || '') + '" loading="lazy">' + (f.pie ? '<figcaption>' + LOGIA.esc(f.pie) + '</figcaption>' : '') + '</figure>'
+             : '<figure><div class="ph">FOTO ' + (i + 1) + '</div></figure>';
+    }
+    g.innerHTML = h;
+  })();
+
+  // Tarjeta de ejemplo
+  document.getElementById('tarjetaEjemplo').innerHTML = LOGIA.tarjetaSola({
+    id: 'LG-0001', alias: 'Tu nombre', ciudad: 'Bogotá', categoria: 'Fundador', desde: '2026-11-22', publico: 'EJEMPLO',
+    locales: [{ visitado: '1' }, { visitado: '1' }, {}, {}, {}]
+  });
+
+  // Mapa y lista de locales
+  LOGIA.api('locales').then(function (locales) {
+    document.getElementById('nLocales').textContent = locales.length;
+    var orden = LOGIA.ordenRuta(locales);
+    LOGIA.mapaSatelital(document.getElementById('mapaInicio'), orden);
+    document.getElementById('listaInicio').innerHTML = orden.map(function (l, i) {
+      var ir = 'https://www.google.com/maps/dir/?api=1&destination=' + l.lat + ',' + l.lng;
+      return '<div class="local"><div class="num">' + (i + 1) + '</div><div><b>' + LOGIA.esc(l.nombre) + '</b><small>' + LOGIA.esc(l.direccion) + '</small>' +
+        '<em>' + LOGIA.esc(l.distintivo || '') + '</em></div><a href="' + ir + '" target="_blank" rel="noopener">Cómo llegar →</a></div>';
+    }).join('') || '<p class="nota">Muy pronto, los primeros locales de la ruta.</p>';
+  }).catch(function () { document.getElementById('listaInicio').innerHTML = '<p class="nota">No se pudo cargar la ruta.</p>'; });
+
+  // Registro
+  function abrirRegistro(e) { if (e) e.preventDefault(); document.getElementById('hoja').classList.add('abierta'); document.body.style.overflow = 'hidden'; }
+  function cerrarRegistro() { document.getElementById('hoja').classList.remove('abierta'); document.body.style.overflow = ''; }
+  if (new URLSearchParams(location.search).get('unirme')) abrirRegistro();
 
   document.getElementById('f').addEventListener('submit', function (ev) {
     ev.preventDefault();
     var btn = document.getElementById('enviar'), err = document.getElementById('err');
     err.textContent = '';
-    var d = {
-      alias: document.getElementById('alias').value,
-      edad: document.getElementById('edad').value,
-      ciudad: document.getElementById('ciudad').value,
-      acepta: document.getElementById('acepta').checked
-    };
-    if (parseInt(d.edad, 10) < 18) { err.textContent = 'La Logia es solo para mayores de 18 años.'; return; }
+    var d = { alias: document.getElementById('alias').value, edad: document.getElementById('edad').value,
+              ciudad: document.getElementById('ciudad').value, acepta: document.getElementById('acepta').checked };
+    if (parseInt(d.edad, 10) < 18) { err.textContent = 'La comunidad es solo para mayores de 18 años.'; return; }
     btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
     LOGIA.api('registrar', d).then(function (r) {
       var id = { m: r.m, t: r.t };
       LOGIA.guardar(r.m, r.t);
-      // si llegó escaneando el QR de un local, vuelve a sellar
       var pend = null; try { pend = JSON.parse(localStorage.getItem('logia_pendiente') || 'null'); } catch (e) {}
       if (pend) { try { localStorage.removeItem('logia_pendiente'); } catch (e) {} location.href = 'sello.html?v=' + pend.v + '&k=' + pend.k; return; }
       document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(r.credencial) + LOGIA.bloqueCodigo(r.credencial);
+      LOGIA.activarMapas();
+      var wa = LOGIA.WHATSAPP || r.credencial.whatsapp;
       document.getElementById('acciones').innerHTML = LOGIA.botonesWallet(r.credencial) +
-        (r.credencial.whatsapp ? '<a class="btn btn-rojo" href="' + r.credencial.whatsapp + '">UNIRME AL CANAL DE WHATSAPP</a>' : '') +
+        (wa ? '<a class="btn btn-wa" href="' + wa + '" target="_blank" rel="noopener">UNIRME AL CANAL DE WHATSAPP</a>' : '') +
         '<a class="btn btn-linea" href="' + LOGIA.credUrl(id) + '">Abrir mi credencial</a>';
-      ver('bienvenida');
+      document.getElementById('formulario').classList.add('oculto');
+      document.getElementById('bienvenida').classList.remove('oculto');
+      var c = document.getElementById('ctaTop'); c.textContent = 'MI PASAPORTE'; c.onclick = null; c.href = LOGIA.credUrl(id);
     }).catch(function (e) {
       btn.disabled = false; btn.textContent = 'OBTENER MI CREDENCIAL';
       err.textContent = e.message;

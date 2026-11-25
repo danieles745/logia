@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administración · LOGIA</title>
+  <link rel="stylesheet" href="assets/logia.css">
+</head>
+<body>
+<main class="adm">
+  <section id="entrar" style="max-width:380px;margin:60px auto">
+    <div class="emblema chico" id="em"></div>
+    <h2 class="serif titulo">Administración</h2>
+    <label for="clave">CLAVE DEL PANEL</label>
+    <input id="clave" type="password" autocomplete="current-password">
+    <button class="btn btn-rojo" style="margin-top:18px" id="entrarBtn">ENTRAR</button>
+    <p id="errEntrar" class="error"></p>
+  </section>
+
+  <section id="panel" class="oculto">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h1>Administración</h1>
+      <div class="acciones"><button class="mini" onclick="cargar()">Actualizar</button><button class="mini" onclick="salir()">Cerrar sesión</button></div>
+    </div>
+    <div class="resumen" id="resumen"></div>
+    <p id="msg" class="ok" style="text-align:left"></p>
+
+    <h2>Locales por aprobar</h2>
+    <div class="scroll-x"><table class="tabla" id="tPend"></table></div>
+
+    <h2>Locales en la ruta</h2>
+    <div class="scroll-x"><table class="tabla" id="tAct"></table></div>
+
+    <h2>Retirados y rechazados</h2>
+    <div class="scroll-x"><table class="tabla" id="tRet"></table></div>
+
+    <h2>Miembros</h2>
+    <input id="buscar" placeholder="Buscar por número, nombre o ciudad" style="margin-bottom:10px">
+    <div class="scroll-x"><table class="tabla" id="tMie"></table></div>
+  </section>
+</main>
+<script src="assets/logia.js"></script>
+<script>
+  document.getElementById('em').innerHTML = LOGIA.logoHTML();
+  var CLAVE = null, DATOS = null;
+  try { CLAVE = sessionStorage.getItem('logia_admin'); } catch (e) {}
+
+  function adm(op, extra) { return LOGIA.api('admin', Object.assign({ clave: CLAVE, op: op }, extra || {})); }
+  function e(s) { return LOGIA.esc(s); }
+  function aviso(t, malo) { var m = document.getElementById('msg'); m.style.color = malo ? '#ff8a80' : ''; m.textContent = t; }
+
+  document.getElementById('entrarBtn').onclick = function () {
+    CLAVE = document.getElementById('clave').value;
+    adm('resumen').then(function (d) {
+      try { sessionStorage.setItem('logia_admin', CLAVE); } catch (x) {}
+      mostrar(d);
+    }).catch(function (x) { document.getElementById('errEntrar').textContent = x.message; });
+  };
+  document.getElementById('clave').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') document.getElementById('entrarBtn').click(); });
+
+  function salir() { try { sessionStorage.removeItem('logia_admin'); } catch (x) {} location.reload(); }
+  function cargar() { return adm('resumen').then(mostrar).catch(function (x) { aviso(x.message, true); }); }
+
+  // Botón que pide un segundo toque para confirmar (sin ventanas emergentes)
+  function confirmar(btn, texto, accion) {
+    if (btn.dataset.armado) { accion(); return; }
+    btn.dataset.armado = '1'; var orig = btn.textContent;
+    btn.textContent = texto; btn.classList.add('confirma');
+    setTimeout(function () { if (btn.isConnected) { delete btn.dataset.armado; btn.textContent = orig; btn.classList.remove('confirma'); } }, 4000);
+  }
+
+  function mostrar(d) {
+    DATOS = d;
+    document.getElementById('entrar').classList.add('oculto');
+    document.getElementById('panel').classList.remove('oculto');
+    var pend = d.locales.filter(function (l) { return l.estado === 'PENDIENTE'; });
+    var act = d.locales.filter(function (l) { return l.estado === 'SI'; });
+    var ret = d.locales.filter(function (l) { return l.estado !== 'SI' && l.estado !== 'PENDIENTE'; });
+    document.getElementById('resumen').innerHTML =
+      '<div><b>' + pend.length + '</b><span>POR APROBAR</span></div><div><b>' + act.length + '</b><span>EN LA RUTA</span></div>' +
+      '<div><b>' + d.miembros.length + '</b><span>MIEMBROS</span></div><div><b>' + d.visitas + '</b><span>SELLOS</span></div>';
+
+    var cab = '<tr><th>LOCAL</th><th>CONTACTO</th><th>ALTA</th><th></th></tr>';
+    document.getElementById('tPend').innerHTML = pend.length ? cab + pend.map(function (l) {
+      return '<tr><td><b>' + e(l.nombre) + '</b><br><small>' + e(l.id) + ' · ' + e(l.direccion) + '</small></td>' +
+        '<td>' + e(l.contacto) + '<br><small>' + e(l.whatsapp) + (l.email ? ' · ' + e(l.email) : '') + (l.instagram ? ' · ' + e(l.instagram) : '') + '</small></td>' +
+        '<td><small>' + e(l.alta) + '</small></td><td><div class="acciones">' +
+        '<select id="dist-' + e(l.id) + '" style="width:auto;padding:6px 8px;font-size:12px"><option>Espacio participante</option><option>Miembro fundador</option><option>Aliado cultural</option></select>' +
+        '<button class="mini ok" onclick="aprobar(\'' + e(l.id) + '\', this)">Aprobar</button>' +
+        '<button class="mini no" onclick="confirmar(this, \'¿Rechazar?\', function(){ op(\'rechazar\', \'' + e(l.id) + '\') })">Rechazar</button></div></td></tr>';
+    }).join('') : '<tr><td><small>No hay locales pendientes.</small></td></tr>';
+
+    document.getElementById('tAct').innerHTML = act.length ? '<tr><th>LOCAL</th><th>DISTINTIVO</th><th>SELLOS</th><th></th></tr>' + act.map(function (l) {
+      return '<tr><td><b>' + e(l.nombre) + '</b><br><small>' + e(l.id) + ' · ' + e(l.direccion) + '</small></td><td><small>' + e(l.distintivo) + '</small></td>' +
+        '<td>' + l.visitas + '</td><td><div class="acciones">' +
+        (l.url_distintivo ? '<a class="mini" href="' + e(l.url_distintivo) + '" target="_blank" rel="noopener">Imprimir distintivo</a>' : '') +
+        '<button class="mini" onclick="confirmar(this, \'¿Nuevo QR? El impreso deja de servir\', function(){ op(\'nuevaClave\', \'' + e(l.id) + '\') })">Nuevo QR</button>' +
+        '<button class="mini no" onclick="confirmar(this, \'¿Retirar de la ruta?\', function(){ op(\'retirarLocal\', \'' + e(l.id) + '\') })">Retirar</button></div></td></tr>';
+    }).join('') : '<tr><td><small>Aún no hay locales en la ruta.</small></td></tr>';
+
+    document.getElementById('tRet').innerHTML = ret.length ? '<tr><th>LOCAL</th><th>ESTADO</th><th></th></tr>' + ret.map(function (l) {
+      return '<tr><td><b>' + e(l.nombre) + '</b><br><small>' + e(l.id) + '</small></td><td><span class="estado">' + e(l.estado) + '</span></td>' +
+        '<td><button class="mini ok" onclick="op(\'reactivar\', \'' + e(l.id) + '\')">Volver a la ruta</button></td></tr>';
+    }).join('') : '<tr><td><small>Ninguno.</small></td></tr>';
+
+    pintarMiembros();
+  }
+
+  function pintarMiembros() {
+    var q = document.getElementById('buscar').value.trim().toLowerCase();
+    var lista = DATOS.miembros.filter(function (m) { return !q || (m.id + ' ' + m.alias + ' ' + m.ciudad).toLowerCase().indexOf(q) > -1; });
+    document.getElementById('tMie').innerHTML = lista.length ? '<tr><th>MIEMBRO</th><th>CIUDAD</th><th>DESDE</th><th>SELLOS</th><th></th></tr>' + lista.map(function (m) {
+      return '<tr><td><b>' + e(m.alias) + '</b><br><small>' + e(m.id) + ' · ' + e(m.categoria) + '</small></td><td>' + e(m.ciudad) + '</td>' +
+        '<td><small>' + e(m.desde) + '</small></td><td>' + e(m.sellos) + '</td>' +
+        '<td><button class="mini no" onclick="confirmar(this, \'¿Retirar? Borra sus datos\', function(){ retirarMiembro(\'' + e(m.id) + '\') })">Retirar</button></td></tr>';
+    }).join('') : '<tr><td><small>Sin resultados.</small></td></tr>';
+  }
+  document.getElementById('buscar').addEventListener('input', function () { if (DATOS) pintarMiembros(); });
+
+  function aprobar(id, btn) {
+    btn.disabled = true;
+    adm('aprobar', { v: id, distintivo: document.getElementById('dist-' + id).value }).then(function (r) {
+      aviso('Local aprobado. Su distintivo está listo para imprimir.');
+      if (r.url_distintivo) window.open(r.url_distintivo, '_blank');
+      cargar();
+    }).catch(function (x) { btn.disabled = false; aviso(x.message, true); });
+  }
+  function op(nombre, id) {
+    adm(nombre, { v: id }).then(function () {
+      aviso({ rechazar: 'Solicitud rechazada.', retirarLocal: 'Local retirado de la ruta. Su QR ya no sella.', reactivar: 'Local de vuelta en la ruta.', nuevaClave: 'QR nuevo generado. Imprime el distintivo otra vez.' }[nombre] || 'Listo.');
+      cargar();
+    }).catch(function (x) { aviso(x.message, true); });
+  }
+  function retirarMiembro(id) {
+    adm('retirarMiembro', { m: id }).then(function () { aviso('Miembro ' + id + ' retirado: datos borrados y pase desactivado.'); cargar(); })
+      .catch(function (x) { aviso(x.message, true); });
+  }
+
+  if (CLAVE) cargar().then(function () { if (!DATOS) document.getElementById('entrar').classList.remove('oculto'); });
+</script>
+</body>
+</html>

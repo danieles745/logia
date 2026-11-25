@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#121110">
   <title>Sella tu pasaporte · LOGIA</title>
+  <link rel="stylesheet" href="assets/leaflet/leaflet.css">
   <link rel="stylesheet" href="assets/logia.css">
 </head>
 <body>
@@ -16,7 +17,12 @@
     <p class="kicker" id="okTitulo">PASAPORTE SELLADO</p>
     <div class="sello-grande" id="sello"></div>
     <h2 class="serif titulo" id="okLocal"></h2>
-    <p class="lema" id="okTexto" style="margin:12px auto 26px"></p>
+    <p class="lema" id="okTexto" style="margin:12px auto 22px"></p>
+    <div class="al-wallet oculto" id="alWallet">
+      <p id="alWalletTxt">Abriendo tu pasaporte en el Wallet…</p>
+      <a class="btn btn-claro" id="alWalletBtn" href="#">VER MI PASAPORTE EN WALLET</a>
+      <button class="enlace-sutil" id="alWalletNo">Quedarme aquí</button>
+    </div>
     <div id="tarjeta" style="text-align:left"></div>
   </section>
 
@@ -44,6 +50,7 @@
   </section>
 </main>
 <script src="assets/qrcode.js"></script>
+<script src="assets/leaflet/leaflet.js"></script>
 <script src="assets/logia.js"></script>
 <script>
   var p = new URLSearchParams(location.search), V = p.get('v'), K = p.get('k');
@@ -61,12 +68,33 @@
         ? '¡Completaste la Ruta Cervecera! Eres Explorador de la Logia.'
         : 'Llevas ' + hechos + ' de ' + c.locales.length + ' sellos en la Ruta Cervecera.';
       document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c);
+      LOGIA.activarMapas();
+      irAlWallet(c, r.nuevo);
       if (navigator.vibrate) navigator.vibrate(60);
       solo('ok');
     }).catch(function (e) {
       if (/credencial/i.test(e.message)) { try { localStorage.removeItem('logia_id'); } catch (x) {} preguntar(); }
       else solo('malo');
     });
+  }
+
+  // Después de sellar, abre el pase en el Wallet del teléfono (Apple o Google)
+  var temporizador = null;
+  function irAlWallet(c, nuevo) {
+    var url = LOGIA.enlaceWallet(c);
+    if (!url) return;
+    var caja = document.getElementById('alWallet'), txt = document.getElementById('alWalletTxt');
+    document.getElementById('alWalletBtn').href = url;
+    caja.classList.remove('oculto');
+    if (!nuevo) { txt.textContent = 'Tu pasaporte ya tiene este sello.'; return; }
+    var s = 3;
+    txt.textContent = 'Abriendo tu pasaporte en el Wallet en ' + s + '…';
+    temporizador = setInterval(function () {
+      s--;
+      if (s <= 0) { clearInterval(temporizador); location.href = url; }
+      else txt.textContent = 'Abriendo tu pasaporte en el Wallet en ' + s + '…';
+    }, 1000);
+    document.getElementById('alWalletNo').onclick = function () { clearInterval(temporizador); txt.textContent = 'Tu sello ya quedó registrado en tu Wallet.'; this.remove(); };
   }
 
   function preguntar() {

@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#121110">
   <meta name="robots" content="noindex">
   <title>Miembro de la Logia · LOGIA</title>
+  <link rel="stylesheet" href="assets/leaflet/leaflet.css">
   <link rel="stylesheet" href="assets/logia.css">
 </head>
 <body>
@@ -22,6 +23,7 @@
   </section>
 </main>
 <script src="assets/qrcode.js"></script>
+<script src="assets/leaflet/leaflet.js"></script>
 <script src="assets/logia.js"></script>
 <script>
   var p = new URLSearchParams(location.search).get('p');
@@ -29,6 +31,7 @@
   if (!p) mostrar('malo');
   else LOGIA.api('publica', { p: p }).then(function (c) {
     document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c);
+    LOGIA.activarMapas();
     mostrar('contenido');
   }).catch(function () { mostrar('malo'); });
 </script>

@@ -13,7 +13,7 @@
   </div>
   <div class="distintivo">
     <div style="width:30mm;margin:0 auto 3mm" id="em"></div>
-    <div class="serif" style="font-size:12mm;letter-spacing:.18em;padding-left:.18em">LOGIA</div>
+    <div class="serif" id="marca" style="font-size:12mm;letter-spacing:.18em;padding-left:.18em">LOGIA</div>
     <div class="kicker" style="margin-top:1.5mm;font-size:2.6mm" id="tipo"></div>
     <div class="qrbox" id="qr"></div>
     <div class="serif" style="font-size:6.5mm">Sella tu pasaporte</div>
@@ -25,7 +25,8 @@
 <script>
   var p = new URLSearchParams(location.search);
   var base = location.origin + location.pathname.replace(/[^/]*$/, '');
-  document.getElementById('em').innerHTML = LOGIA.emblema();
+  document.getElementById('em').innerHTML = LOGIA.logoHTML();
+  document.getElementById('marca').textContent = LOGIA.MARCA.nombre;
   document.getElementById('qr').innerHTML = LOGIA.qr(base + 'sello.html?v=' + encodeURIComponent(p.get('v') || '') + '&k=' + encodeURIComponent(p.get('k') || ''));
   document.getElementById('tipo').textContent = (p.get('d') || 'Espacio participante').toUpperCase();
   document.getElementById('local').textContent = (p.get('n') || '').toUpperCase();
