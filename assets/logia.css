@@ -93,6 +93,9 @@ a { color: var(--oro); }
 .ruta-cab span { font-size: 10px; letter-spacing: .26em; color: #7a6f5f; }
 .mapa { margin: 14px -6px 6px; }
 .mapa svg { width: 100%; height: auto; display: block; }
+/* Los SVG internos de Leaflet (bandera de la atribución, trazos) conservan su tamaño propio */
+.mapa .leaflet-container svg, .mapa-sat.leaflet-container svg { width: auto; height: auto; display: inline; }
+.leaflet-attribution-flag { display: none !important; }
 .lista { list-style: none; margin-top: 10px; }
 .lista li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #dccfb6; }
 .lista .num { width: 30px; height: 30px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 600 12px 'IBM Plex Mono', monospace; border: 1.5px dashed #9d9180; color: #7a6f5f; }
@@ -298,3 +301,7 @@ html { scroll-behavior: smooth; }
   .datos { gap: 22px; }
   .datos b { font-size: 28px; }
 }
+
+/* v5: sello repetido */
+.sello-grande.repetido { opacity: .55; filter: grayscale(.6); }
+.al-wallet .btn + .enlace-sutil { display: block; margin: 12px auto 0; }

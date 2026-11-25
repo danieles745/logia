@@ -161,6 +161,12 @@ LOGIA.ordenRuta = function (locales) {
   }
   return ruta.concat(sin);
 };
+LOGIA.fechaCorta = function (f) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(f || ''));
+  if (!m) return String(f || '');
+  var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return (+m[3]) + ' de ' + meses[+m[2] - 1];
+};
 LOGIA.mesAnio = function (f) {
   var m = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
   var p = String(f || '').split('-'); return p.length > 1 ? m[parseInt(p[1], 10) - 1] + ' ' + p[0] : f;
@@ -183,6 +189,7 @@ LOGIA.mapaSatelital = function (el, locales) {
   var pts = LOGIA.ordenRuta(locales).filter(function (l) { return l.lat && l.lng; });
   if (typeof L === 'undefined' || !pts.length) { el.innerHTML = LOGIA.mapaRuta(locales); el.style.height = 'auto'; return; }
   var map = L.map(el, { scrollWheelZoom: false, tap: true, attributionControl: true, zoomControl: true });
+  map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19, attribution: 'Powered by Esri · Imágenes: Esri, Maxar, Earthstar Geographics y GIS User Community'
   }).addTo(map);
@@ -214,6 +221,20 @@ LOGIA.enlaceWallet = function (c) {
   if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) return c.apple || '';
   if (/Android/i.test(navigator.userAgent)) return c.google || c.apple || '';
   return '';
+};
+
+/* ¿El pase ya está en el Wallet de este teléfono? Lo sabe el servidor (Apple confirma la instalación
+   cuando le llega una actualización) o este teléfono (el miembro lo agregó o dijo que ya lo tiene). */
+LOGIA.tieneWallet = function (c) {
+  if (c && c.enWallet) return true;
+  try { return localStorage.getItem('logia_wallet') === String(c && c.id); } catch (e) { return false; }
+};
+LOGIA.marcarWallet = function (c) { try { localStorage.setItem('logia_wallet', String(c.id)); } catch (e) {} };
+/* Abre la app del Wallet con el pase. iPhone: la app Wallet. Android: Google Wallet muestra el pase ya guardado. */
+LOGIA.abrirWallet = function (c) {
+  if (LOGIA.esIOS()) { location.href = 'shoebox://'; return true; }
+  if (/Android/i.test(navigator.userAgent) && c.google) { location.href = c.google; return true; }
+  return false;
 };
 
 /* ---------------- Marca ---------------- */
@@ -264,7 +285,14 @@ LOGIA.bloqueCodigo = function (c) {
 };
 
 LOGIA.botonesWallet = function (c) {
-  var apple = c.apple ? '<a class="btn btn-wallet" href="' + c.apple + '">Agregar a Apple Wallet</a>' : '';
-  var google = c.google ? '<a class="btn btn-wallet" href="' + c.google + '">Agregar a Google Wallet</a>' : '';
+  LOGIA._c = c;
+  var movil = LOGIA.esIOS() || /Android/i.test(navigator.userAgent);
+  if (movil && LOGIA.tieneWallet(c)) {
+    return '<a class="btn btn-wallet" href="#" onclick="LOGIA.abrirWallet(LOGIA._c);return false">Abrir mi pasaporte en el Wallet</a>' +
+      '<p class="nota" style="text-align:center">¿No aparece en tu Wallet? <a href="' + (LOGIA.enlaceWallet(c) || c.apple) + '">Agrégalo de nuevo</a></p>';
+  }
+  var marca = ' onclick="LOGIA.marcarWallet(LOGIA._c)"';
+  var apple = c.apple ? '<a class="btn btn-wallet" href="' + c.apple + '"' + marca + '>Agregar a Apple Wallet</a>' : '';
+  var google = c.google ? '<a class="btn btn-wallet" href="' + c.google + '"' + marca + '>Agregar a Google Wallet</a>' : '';
   return LOGIA.esIOS() ? apple + google : google + apple;
 };

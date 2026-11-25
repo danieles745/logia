@@ -61,40 +61,61 @@
     solo('carga');
     LOGIA.api('sellar', { m: id.m, t: id.t, v: V, k: K }).then(function (r) {
       var c = r.credencial, hechos = c.locales.filter(function (l) { return l.visitado; }).length;
-      document.getElementById('sello').innerHTML = LOGIA.selloSVG(r.local, r.fecha);
-      document.getElementById('okTitulo').textContent = r.nuevo ? 'PASAPORTE SELLADO' : 'YA TIENES EL SELLO DE HOY';
+      var primera = r.primera !== undefined ? r.primera : r.nuevo;
+      var sello = document.getElementById('sello');
+      sello.innerHTML = LOGIA.selloSVG(r.local, r.desde || r.fecha);
+      sello.classList.toggle('repetido', !primera);
+      document.getElementById('okTitulo').textContent = primera ? 'PASAPORTE SELLADO' : 'ESTE LUGAR YA ESTÁ EN TU PASAPORTE';
       document.getElementById('okLocal').textContent = r.local;
-      document.getElementById('okTexto').textContent = hechos === c.locales.length
+      var avance = hechos === c.locales.length
         ? '¡Completaste la Ruta Cervecera! Eres Explorador de la Logia.'
         : 'Llevas ' + hechos + ' de ' + c.locales.length + ' sellos en la Ruta Cervecera.';
+      document.getElementById('okTexto').textContent = primera ? avance
+        : 'Lo sellaste el ' + LOGIA.fechaCorta(r.desde) + '. ' + (r.nuevo ? 'Registramos tu visita de hoy. ' : 'Tu visita de hoy ya está registrada. ') + avance;
       document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c);
       LOGIA.activarMapas();
-      irAlWallet(c, r.nuevo);
-      if (navigator.vibrate) navigator.vibrate(60);
+      if (primera && navigator.vibrate) navigator.vibrate(60);
       solo('ok');
+      irAlWallet(c);
     }).catch(function (e) {
       if (/credencial/i.test(e.message)) { try { localStorage.removeItem('logia_id'); } catch (x) {} preguntar(); }
       else solo('malo');
     });
   }
 
-  // Después de sellar, abre el pase en el Wallet del teléfono (Apple o Google)
+  // Después de sellar:
+  // - si el pase ya está en el Wallet de este teléfono, abre el Wallet solo (con opción de quedarse);
+  // - si no está, muestra el botón para agregarlo y no redirige a ninguna parte.
   var temporizador = null;
-  function irAlWallet(c, nuevo) {
+  function irAlWallet(c) {
     var url = LOGIA.enlaceWallet(c);
     if (!url) return;
-    var caja = document.getElementById('alWallet'), txt = document.getElementById('alWalletTxt');
-    document.getElementById('alWalletBtn').href = url;
+    var caja = document.getElementById('alWallet'), txt = document.getElementById('alWalletTxt'),
+        btn = document.getElementById('alWalletBtn'), no = document.getElementById('alWalletNo');
     caja.classList.remove('oculto');
-    if (!nuevo) { txt.textContent = 'Tu pasaporte ya tiene este sello.'; return; }
-    var s = 3;
-    txt.textContent = 'Abriendo tu pasaporte en el Wallet en ' + s + '…';
-    temporizador = setInterval(function () {
-      s--;
-      if (s <= 0) { clearInterval(temporizador); location.href = url; }
-      else txt.textContent = 'Abriendo tu pasaporte en el Wallet en ' + s + '…';
-    }, 1000);
-    document.getElementById('alWalletNo').onclick = function () { clearInterval(temporizador); txt.textContent = 'Tu sello ya quedó registrado en tu Wallet.'; this.remove(); };
+
+    if (LOGIA.tieneWallet(c)) {
+      btn.textContent = 'ABRIR MI WALLET';
+      btn.href = '#';
+      btn.onclick = function (e) { e.preventDefault(); clearInterval(temporizador); LOGIA.abrirWallet(c); };
+      var s = 2;
+      txt.textContent = 'Abriendo tu Wallet en ' + s + '…';
+      temporizador = setInterval(function () {
+        s--;
+        if (s <= 0) { clearInterval(temporizador); txt.textContent = 'Tu pasaporte está actualizado en tu Wallet.'; no.remove(); LOGIA.abrirWallet(c); }
+        else txt.textContent = 'Abriendo tu Wallet en ' + s + '…';
+      }, 1000);
+      no.textContent = 'Quedarme aquí';
+      no.onclick = function () { clearInterval(temporizador); txt.textContent = 'Tu pasaporte está actualizado en tu Wallet.'; this.remove(); };
+      return;
+    }
+
+    txt.textContent = 'Guarda tu pasaporte en el Wallet para tenerlo siempre a mano.';
+    btn.textContent = LOGIA.esIOS() ? 'AGREGAR A APPLE WALLET' : 'AGREGAR A GOOGLE WALLET';
+    btn.href = url;
+    btn.onclick = function () { LOGIA.marcarWallet(c); };
+    no.textContent = 'Ya lo tengo en mi Wallet';
+    no.onclick = function () { LOGIA.marcarWallet(c); this.remove(); txt.textContent = 'Listo. La próxima vez abriremos tu Wallet directamente.'; btn.textContent = 'ABRIR MI WALLET'; btn.href = '#'; btn.onclick = function (e) { e.preventDefault(); LOGIA.abrirWallet(c); }; };
   }
 
   function preguntar() {
