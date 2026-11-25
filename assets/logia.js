@@ -161,6 +161,12 @@ LOGIA.ordenRuta = function (locales) {
   }
   return ruta.concat(sin);
 };
+LOGIA.fechaHora = function (f) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(String(f || ''));
+  if (!m) return LOGIA.fechaCorta(f);
+  var h = +m[4], ap = h < 12 ? 'a. m.' : 'p. m.', h12 = h % 12 || 12;
+  return LOGIA.fechaCorta(f) + ' a las ' + h12 + ':' + m[5] + ' ' + ap;
+};
 LOGIA.fechaCorta = function (f) {
   var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(f || ''));
   if (!m) return String(f || '');

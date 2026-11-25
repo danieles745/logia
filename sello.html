@@ -63,7 +63,7 @@
       var c = r.credencial, hechos = c.locales.filter(function (l) { return l.visitado; }).length;
       var primera = r.primera !== undefined ? r.primera : r.nuevo;
       var sello = document.getElementById('sello');
-      sello.innerHTML = LOGIA.selloSVG(r.local, r.desde || r.fecha);
+      sello.innerHTML = LOGIA.selloSVG(r.local, String(r.desde || r.fecha).slice(0, 10));
       sello.classList.toggle('repetido', !primera);
       document.getElementById('okTitulo').textContent = primera ? 'PASAPORTE SELLADO' : 'ESTE LUGAR YA ESTÁ EN TU PASAPORTE';
       document.getElementById('okLocal').textContent = r.local;
@@ -71,7 +71,7 @@
         ? '¡Completaste la Ruta Cervecera! Eres Explorador de la Logia.'
         : 'Llevas ' + hechos + ' de ' + c.locales.length + ' sellos en la Ruta Cervecera.';
       document.getElementById('okTexto').textContent = primera ? avance
-        : 'Lo sellaste el ' + LOGIA.fechaCorta(r.desde) + '. ' + (r.nuevo ? 'Registramos tu visita de hoy. ' : 'Tu visita de hoy ya está registrada. ') + avance;
+        : 'Lo sellaste el ' + LOGIA.fechaHora(r.desde) + '. Podrás sellarlo de nuevo desde el ' + LOGIA.fechaHora(r.vence) + '. ' + avance;
       document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c);
       LOGIA.activarMapas();
       if (primera && navigator.vibrate) navigator.vibrate(60);
