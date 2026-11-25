@@ -57,6 +57,8 @@
   document.getElementById('em').innerHTML = LOGIA.emblema();
   function solo(id) { ['carga', 'ok', 'quien', 'malo'].forEach(function (s) { document.getElementById(s).classList.toggle('oculto', s !== id); }); }
 
+  function punto(t) { return /\.$/.test(t) ? t : t + '.'; }
+
   function sellar(id) {
     solo('carga');
     LOGIA.api('sellar', { m: id.m, t: id.t, v: V, k: K }).then(function (r) {
@@ -71,7 +73,7 @@
         ? '¡Completaste la Ruta Cervecera! Eres Explorador de la Logia.'
         : 'Llevas ' + hechos + ' de ' + c.locales.length + ' sellos en la Ruta Cervecera.';
       document.getElementById('okTexto').textContent = primera ? avance
-        : 'Lo sellaste el ' + LOGIA.fechaHora(r.desde) + '. Podrás sellarlo de nuevo desde el ' + LOGIA.fechaHora(r.vence) + '. ' + avance;
+        : punto('Lo sellaste el ' + LOGIA.fechaHora(r.desde)) + ' ' + punto('Podrás sellarlo de nuevo desde el ' + LOGIA.fechaHora(r.vence)) + ' ' + avance;
       document.getElementById('tarjeta').innerHTML = LOGIA.tarjeta(c);
       LOGIA.activarMapas();
       if (primera && navigator.vibrate) navigator.vibrate(60);
