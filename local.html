@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121110">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Portal del local · LOGIA</title>
+  <link rel="stylesheet" href="assets/logia.css">
+</head>
+<body>
+<main class="portal">
+  <div id="carga" style="text-align:center;padding:90px 0"><span class="spinner"></span><p class="nota">Abriendo tu portal…</p></div>
+
+  <section id="error" class="oculto" style="text-align:center;padding-top:70px">
+    <div class="emblema chico" id="emErr"></div>
+    <h2 class="serif titulo">Portal del local</h2>
+    <p class="lema" id="errTxt"></p>
+  </section>
+
+  <section id="contenido" class="oculto">
+    <header class="p-cab">
+      <div class="emblema chico" id="em"></div>
+      <p class="kicker">PORTAL DEL LOCAL</p>
+      <h1 class="p-nombre serif" id="nombre"></h1>
+      <p class="p-sub"><span id="distintivo"></span> · <span id="direccion"></span></p>
+    </header>
+
+    <!-- Código de sello -->
+    <section class="p-bloque p-qr">
+      <div class="p-qr-img" id="qr"></div>
+      <div>
+        <h2>Tu código de sello</h2>
+        <p>Los miembros lo escanean con la cámara del teléfono y sellan su pasaporte solos. Tu equipo no tiene que hacer nada.</p>
+        <div id="wallet"></div>
+        <a class="btn btn-linea" id="imprimir" href="#" target="_blank" rel="noopener">IMPRIMIR EL DISTINTIVO</a>
+        <p class="nota">En el Wallet llevas el mismo código: si el distintivo impreso se daña, el cliente lo escanea desde tu teléfono.</p>
+      </div>
+    </section>
+
+    <!-- Indicadores -->
+    <section class="p-kpis" id="kpis"></section>
+
+    <section class="p-bloque">
+      <div class="p-tit"><h2>Visitas de los últimos 14 días</h2><small>Una visita es un sello en tu local</small></div>
+      <div class="barras" id="gDias"></div>
+    </section>
+
+    <div class="p-dos">
+      <section class="p-bloque">
+        <div class="p-tit"><h2>Días con más movimiento</h2><small>Desde que estás en la ruta</small></div>
+        <div class="barras barras-7" id="gSemana"></div>
+      </section>
+      <section class="p-bloque">
+        <div class="p-tit"><h2>Horas con más movimiento</h2><small>Desde que estás en la ruta</small></div>
+        <div class="barras barras-24" id="gHoras"></div>
+      </section>
+    </div>
+
+    <!-- Comentarios -->
+    <section class="p-bloque">
+      <div class="p-tit"><h2>Lo que dicen los miembros</h2><small id="resumenResenas"></small></div>
+      <div id="comentarios"></div>
+      <p class="nota">Los comentarios son anónimos y también se publican en la página de la Logia.</p>
+    </section>
+
+    <p class="nota p-pie">Este enlace es tu acceso privado al portal. Guárdalo y no lo compartas fuera de tu equipo.</p>
+  </section>
+</main>
+<script src="assets/qrcode.js"></script>
+<script src="assets/logia.js"></script>
+<script>
+  var p = new URLSearchParams(location.search), V = p.get('v'), C = p.get('c');
+  if (V && C) { try { localStorage.setItem('logia_portal', JSON.stringify({ v: V, c: C })); } catch (e) {} }
+  else { try { var g = JSON.parse(localStorage.getItem('logia_portal') || 'null'); if (g) { V = g.v; C = g.c; } } catch (e) {} }
+
+  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var DIAS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  document.getElementById('em').innerHTML = LOGIA.emblema();
+  document.getElementById('emErr').innerHTML = LOGIA.emblema();
+
+  function error(t) {
+    document.getElementById('carga').classList.add('oculto');
+    document.getElementById('errTxt').textContent = t;
+    document.getElementById('error').classList.remove('oculto');
+  }
+
+  function estrellas(n) {
+    var s = '';
+    for (var i = 1; i <= 5; i++) s += '<span class="' + (i <= Math.round(n) ? 'on' : '') + '">★</span>';
+    return '<span class="estrellas" aria-label="' + n + ' de 5">' + s + '</span>';
+  }
+
+  // Barras de una sola serie: el valor exacto aparece al pasar el dedo o el cursor
+  function barras(el, datos, etiquetas, nombre, mostrarCada) {
+    var max = Math.max.apply(null, datos.concat([1]));
+    el.innerHTML = datos.map(function (n, i) {
+      var et = etiquetas[i];
+      return '<div class="b" tabindex="0" title="' + et + ': ' + n + ' ' + nombre + '">' +
+        '<span class="v">' + (n || '') + '</span>' +
+        '<i style="height:' + (n ? Math.max(4, n / max * 100) : 0) + '%"></i>' +
+        '<small>' + ((mostrarCada && i % mostrarCada) ? '' : et) + '</small></div>';
+    }).join('');
+  }
+
+  function kpi(valor, titulo, detalle) {
+    return '<div class="kpi"><b>' + valor + '</b><span>' + titulo + '</span>' + (detalle ? '<small>' + detalle + '</small>' : '') + '</div>';
+  }
+
+  if (!V || !C) error('Abre el enlace privado que la Logia te envió por WhatsApp o por correo.');
+  else LOGIA.api('portal', { v: V, c: C }).then(function (r) {
+    var e = r.estadisticas;
+    document.title = r.nombre + ' · Portal del local · LOGIA';
+    document.getElementById('nombre').textContent = r.nombre;
+    document.getElementById('distintivo').textContent = r.distintivo;
+    document.getElementById('direccion').textContent = r.direccion;
+    document.getElementById('qr').innerHTML = LOGIA.qr(r.url_sello);
+    document.getElementById('imprimir').href = 'distintivo.html?v=' + encodeURIComponent(r.id) + '&k=' + encodeURIComponent(r.clave) +
+      '&n=' + encodeURIComponent(r.nombre) + '&d=' + encodeURIComponent(r.distintivo);
+    var apple = r.apple ? '<a class="btn btn-wallet" href="' + r.apple + '">Agregar a Apple Wallet</a>' : '';
+    var google = r.google ? '<a class="btn btn-wallet" href="' + r.google + '">Agregar a Google Wallet</a>' : '';
+    document.getElementById('wallet').innerHTML = LOGIA.esIOS() ? apple : (/Android/i.test(navigator.userAgent) ? google : apple + google);
+
+    var mes = MESES[new Date().getMonth()];
+    var cambio = '';
+    if (e.mesAnterior) {
+      var pct = Math.round((e.mesActual - e.mesAnterior) / e.mesAnterior * 100);
+      cambio = (pct >= 0 ? '▲ ' : '▼ ') + Math.abs(pct) + '% frente al mes anterior';
+    } else if (e.mesActual) cambio = 'Primer mes con visitas';
+    document.getElementById('kpis').innerHTML =
+      kpi(e.mesActual, 'Visitas en ' + mes, cambio) +
+      kpi(e.miembrosMes, 'Miembros en ' + mes, e.miembros + ' en total') +
+      kpi(e.recurrentes, 'Miembros que repiten', 'Han vuelto más de una vez') +
+      kpi(e.resenas ? e.promedio.toFixed(1) + ' ★' : '—', 'Calificación', e.resenas ? e.resenas + (e.resenas === 1 ? ' reseña' : ' reseñas') : 'Aún sin reseñas');
+
+    barras(document.getElementById('gDias'), e.dias.map(function (d) { return d.n; }),
+      e.dias.map(function (d) { return String(+d.f.slice(8, 10)) + ' ' + MESES[+d.f.slice(5, 7) - 1].slice(0, 3); }), 'visitas', 2);
+    barras(document.getElementById('gSemana'), e.semana, DIAS, 'visitas');
+    barras(document.getElementById('gHoras'), e.horas,
+      e.horas.map(function (x, h) { return (h % 12 || 12) + (h < 12 ? 'a' : 'p'); }), 'visitas', 3);
+
+    document.getElementById('resumenResenas').textContent = e.resenas ? e.promedio.toFixed(1) + ' de 5 · ' + e.resenas + (e.resenas === 1 ? ' reseña' : ' reseñas') : '';
+    document.getElementById('comentarios').innerHTML = r.comentarios.length ? r.comentarios.map(function (c) {
+      return '<div class="coment">' + estrellas(c.estrellas) + '<small>' + LOGIA.fechaCorta(c.fecha) + '</small>' +
+        (c.texto ? '<p>' + LOGIA.esc(c.texto) + '</p>' : '') + '</div>';
+    }).join('') : '<p class="nota">Cuando los miembros califiquen tu local después de sellar, sus comentarios aparecen aquí.</p>';
+
+    document.getElementById('carga').classList.add('oculto');
+    document.getElementById('contenido').classList.remove('oculto');
+  }).catch(function (x) { error(x.message); });
+</script>
+</body>
+</html>

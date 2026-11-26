@@ -74,6 +74,14 @@
     <div class="mapa-sat" id="mapaInicio"></div>
     <div class="locales-lista" id="listaInicio"><p class="nota">Cargando locales…</p></div>
   </div>
+  <div id="resenasInicio" class="oculto">
+    <div class="sec-cab" style="margin-top:48px">
+      <p class="kicker">LO QUE DICEN LOS MIEMBROS</p>
+      <h2>Reseñas de la ruta</h2>
+      <p>Calificaciones anónimas que dejan los miembros después de sellar su pasaporte.</p>
+    </div>
+    <div class="resenas-inicio" id="resenasGrid"></div>
+  </div>
 </section>
 <div class="sep"></div>
 
@@ -128,7 +136,7 @@
       <p class="kicker" style="text-align:left;margin:0 0 12px">PARA LOCALES</p>
       <h2>¿Tienes un local en Teusaquillo o el Parkway?</h2>
       <p>Haz parte de la Ruta Cervecera sin costo y sin trabajo extra para tu equipo.</p>
-      <ul><li>Presencia en el mapa de la Logia</li><li>Visitantes que llegan a completar su pasaporte</li><li>Resumen mensual de visitas de miembros</li><li>Los miembros se sellan solos con el código del distintivo</li></ul>
+      <ul><li>Presencia en el mapa de la Logia</li><li>Visitantes que llegan a completar su pasaporte</li><li>Portal propio con estadísticas de visitas y reseñas de los miembros</li><li>Tu código de sello en el Wallet de tu teléfono</li><li>Los miembros se sellan solos con el código del distintivo</li></ul>
     </div>
     <div><a class="btn btn-rojo" href="unir-local.html">UNIR MI LOCAL</a></div>
   </div>
@@ -234,8 +242,21 @@
     document.getElementById('listaInicio').innerHTML = orden.map(function (l, i) {
       var ir = 'https://www.google.com/maps/dir/?api=1&destination=' + l.lat + ',' + l.lng;
       return '<div class="local"><div class="num">' + (i + 1) + '</div><div><b>' + LOGIA.esc(l.nombre) + '</b><small>' + LOGIA.esc(l.direccion) + '</small>' +
-        '<em>' + LOGIA.esc(l.distintivo || '') + '</em></div><a href="' + ir + '" target="_blank" rel="noopener">Cómo llegar →</a></div>';
+        '<em>' + LOGIA.esc(l.distintivo || '') + '</em>' +
+        (l.resenas ? '<span class="cal">★ ' + Number(l.promedio).toFixed(1) + ' <small>(' + l.resenas + ')</small></span>' : '') +
+        '</div><a href="' + ir + '" target="_blank" rel="noopener">Cómo llegar →</a></div>';
     }).join('') || '<p class="nota">Muy pronto, los primeros locales de la ruta.</p>';
+    var resenas = [];
+    locales.forEach(function (l) { (l.comentarios || []).forEach(function (c) { resenas.push({ local: l.nombre, c: c }); }); });
+    resenas.sort(function (a, b) { return a.c.fecha < b.c.fecha ? 1 : -1; });
+    if (resenas.length) {
+      document.getElementById('resenasGrid').innerHTML = resenas.slice(0, 6).map(function (r) {
+        var st = ''; for (var i = 1; i <= 5; i++) st += '<span class="' + (i <= r.c.estrellas ? 'on' : '') + '">★</span>';
+        return '<div class="resena"><span class="estrellas" aria-label="' + r.c.estrellas + ' de 5">' + st + '</span>' +
+          '<p>' + LOGIA.esc(r.c.texto) + '</p><small>' + LOGIA.esc(r.local) + ' · ' + LOGIA.fechaCorta(r.c.fecha) + '</small></div>';
+      }).join('');
+      document.getElementById('resenasInicio').classList.remove('oculto');
+    }
   }).catch(function () { document.getElementById('listaInicio').innerHTML = '<p class="nota">No se pudo cargar la ruta.</p>'; });
 
   // Registro

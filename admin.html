@@ -35,6 +35,10 @@
     <h2>Retirados y rechazados</h2>
     <div class="scroll-x"><table class="tabla" id="tRet"></table></div>
 
+    <h2>Reseñas de los miembros</h2>
+    <p class="nota" style="text-align:left;margin-bottom:10px">Se publican al instante en la página. Oculta las que no deban mostrarse; el dueño del local tampoco las verá.</p>
+    <div class="scroll-x"><table class="tabla" id="tCom"></table></div>
+
     <h2>Miembros</h2>
     <input id="buscar" placeholder="Buscar por número, nombre o ciudad" style="margin-bottom:10px">
     <div class="scroll-x"><table class="tabla" id="tMie"></table></div>
@@ -94,7 +98,10 @@
     document.getElementById('tAct').innerHTML = act.length ? '<tr><th>LOCAL</th><th>DISTINTIVO</th><th>SELLOS</th><th></th></tr>' + act.map(function (l) {
       return '<tr><td><b>' + e(l.nombre) + '</b><br><small>' + e(l.id) + ' · ' + e(l.direccion) + '</small></td><td><small>' + e(l.distintivo) + '</small></td>' +
         '<td>' + l.visitas + '</td><td><div class="acciones">' +
+        (l.url_portal ? '<a class="mini ok" href="' + e(l.url_portal) + '" target="_blank" rel="noopener">Abrir portal</a>' +
+          (l.whatsapp ? '<a class="mini" href="' + e(enlaceWa(l)) + '" target="_blank" rel="noopener">Enviar portal por WhatsApp</a>' : '') : '') +
         (l.url_distintivo ? '<a class="mini" href="' + e(l.url_distintivo) + '" target="_blank" rel="noopener">Imprimir distintivo</a>' : '') +
+        '<button class="mini" onclick="confirmar(this, \'¿Nuevo enlace? El anterior deja de servir\', function(){ op(\'nuevoCodigoPortal\', \'' + e(l.id) + '\') })">Nuevo enlace de portal</button>' +
         '<button class="mini" onclick="confirmar(this, \'¿Nuevo QR? El impreso deja de servir\', function(){ op(\'nuevaClave\', \'' + e(l.id) + '\') })">Nuevo QR</button>' +
         '<button class="mini no" onclick="confirmar(this, \'¿Retirar de la ruta?\', function(){ op(\'retirarLocal\', \'' + e(l.id) + '\') })">Retirar</button></div></td></tr>';
     }).join('') : '<tr><td><small>Aún no hay locales en la ruta.</small></td></tr>';
@@ -104,7 +111,30 @@
         '<td><button class="mini ok" onclick="op(\'reactivar\', \'' + e(l.id) + '\')">Volver a la ruta</button></td></tr>';
     }).join('') : '<tr><td><small>Ninguno.</small></td></tr>';
 
+    var nombres = {}; d.locales.forEach(function (l) { nombres[l.id] = l.nombre; });
+    var coms = d.comentarios || [];
+    document.getElementById('tCom').innerHTML = coms.length ? '<tr><th>LOCAL</th><th>RESEÑA</th><th>FECHA</th><th></th></tr>' + coms.map(function (c) {
+      var st = ''; for (var i = 1; i <= 5; i++) st += i <= c.estrellas ? '★' : '☆';
+      var oculto = c.visible !== 'SI';
+      return '<tr' + (oculto ? ' style="opacity:.5"' : '') + '><td><b>' + e(nombres[c.local] || c.local) + '</b><br><small>' + e(c.miembro) + '</small></td>' +
+        '<td><span style="color:#C9A227">' + st + '</span><br>' + e(c.texto || '') + '</td><td><small>' + e(c.fecha) + '</small></td><td>' +
+        (oculto ? '<button class="mini ok" onclick="opComentario(\'mostrarComentario\', \'' + e(c.id) + '\')">Mostrar</button>'
+                : '<button class="mini no" onclick="opComentario(\'ocultarComentario\', \'' + e(c.id) + '\')">Ocultar</button>') + '</td></tr>';
+    }).join('') : '<tr><td><small>Aún no hay reseñas.</small></td></tr>';
+
     pintarMiembros();
+  }
+
+  function enlaceWa(l) {
+    var n = String(l.whatsapp || '').replace(/\D/g, '');
+    if (n.length === 10) n = '57' + n;
+    var txt = 'Hola ' + (l.contacto || '') + ', este es el portal de ' + l.nombre + ' en la Ruta Cervecera de la Logia: ' + l.url_portal +
+      '\n\nAhí encuentras tu código de sello para imprimir o guardar en el Wallet, las visitas de los miembros y sus reseñas. Es un enlace privado, guárdalo.';
+    return 'https://wa.me/' + n + '?text=' + encodeURIComponent(txt);
+  }
+  function opComentario(nombre, id) {
+    adm(nombre, { id: id }).then(function () { aviso(nombre === 'ocultarComentario' ? 'Reseña oculta.' : 'Reseña visible de nuevo.'); cargar(); })
+      .catch(function (x) { aviso(x.message, true); });
   }
 
   function pintarMiembros() {
@@ -121,14 +151,14 @@
   function aprobar(id, btn) {
     btn.disabled = true;
     adm('aprobar', { v: id, distintivo: document.getElementById('dist-' + id).value }).then(function (r) {
-      aviso('Local aprobado. Su distintivo está listo para imprimir.');
+      aviso('Local aprobado. Su distintivo está listo para imprimir; envía al dueño el enlace de su portal desde "Locales en la ruta".');
       if (r.url_distintivo) window.open(r.url_distintivo, '_blank');
       cargar();
     }).catch(function (x) { btn.disabled = false; aviso(x.message, true); });
   }
   function op(nombre, id) {
     adm(nombre, { v: id }).then(function () {
-      aviso({ rechazar: 'Solicitud rechazada.', retirarLocal: 'Local retirado de la ruta. Su QR ya no sella.', reactivar: 'Local de vuelta en la ruta.', nuevaClave: 'QR nuevo generado. Imprime el distintivo otra vez.' }[nombre] || 'Listo.');
+      aviso({ rechazar: 'Solicitud rechazada.', retirarLocal: 'Local retirado de la ruta. Su QR ya no sella.', reactivar: 'Local de vuelta en la ruta.', nuevaClave: 'QR nuevo generado. Imprime el distintivo otra vez; el pase del dueño en el Wallet se actualiza solo.', nuevoCodigoPortal: 'Enlace de portal nuevo. Envíaselo al dueño; el anterior ya no funciona.' }[nombre] || 'Listo.');
       cargar();
     }).catch(function (x) { aviso(x.message, true); });
   }

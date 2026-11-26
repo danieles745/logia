@@ -18,6 +18,16 @@
     <div class="sello-grande" id="sello"></div>
     <h2 class="serif titulo" id="okLocal"></h2>
     <p class="lema" id="okTexto" style="margin:12px auto 22px"></p>
+    <div class="calificar" id="calificar">
+      <p id="calTxt">¿Cómo te pareció este lugar?</p>
+      <div class="elegir" id="elegir"></div>
+      <div id="calMas" class="oculto">
+        <textarea id="calTexto" maxlength="280" placeholder="Cuéntale a la comunidad qué tomaste o qué te gustó (opcional)"></textarea>
+        <button class="btn btn-rojo" id="calEnviar">PUBLICAR</button>
+      </div>
+      <small id="calNota">Tu comentario es anónimo y se publica en la página de la Logia.</small>
+      <p id="calErr" class="error"></p>
+    </div>
     <div class="al-wallet oculto" id="alWallet">
       <p id="alWalletTxt">Abriendo tu pasaporte en el Wallet…</p>
       <a class="btn btn-claro" id="alWalletBtn" href="#">VER MI PASAPORTE EN WALLET</a>
@@ -78,6 +88,7 @@
       LOGIA.activarMapas();
       if (primera && navigator.vibrate) navigator.vibrate(60);
       solo('ok');
+      calificar(id);
       irAlWallet(c);
     }).catch(function (e) {
       if (/credencial/i.test(e.message)) { try { localStorage.removeItem('logia_id'); } catch (x) {} preguntar(); }
@@ -118,6 +129,33 @@
     btn.onclick = function () { LOGIA.marcarWallet(c); };
     no.textContent = 'Ya lo tengo en mi Wallet';
     no.onclick = function () { LOGIA.marcarWallet(c); this.remove(); txt.textContent = 'Listo. La próxima vez abriremos tu Wallet directamente.'; btn.textContent = 'ABRIR MI WALLET'; btn.href = '#'; btn.onclick = function (e) { e.preventDefault(); LOGIA.abrirWallet(c); }; };
+  }
+
+  // Calificación anónima del local: de 1 a 5 estrellas y un comentario opcional
+  function calificar(id) {
+    var elegido = 0, el = document.getElementById('elegir');
+    el.innerHTML = [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-n="' + n + '" aria-label="' + n + ' estrellas">★</button>'; }).join('');
+    el.querySelectorAll('button').forEach(function (b) {
+      b.onclick = function () {
+        elegido = +b.getAttribute('data-n');
+        el.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', +x.getAttribute('data-n') <= elegido); });
+        document.getElementById('calMas').classList.remove('oculto');
+        if (temporizador) {
+          clearInterval(temporizador); temporizador = null;
+          var no = document.getElementById('alWalletNo'); if (no) no.remove();
+          document.getElementById('alWalletTxt').textContent = 'Cuando termines, abre tu pasaporte en el Wallet.';
+        }
+      };
+    });
+    document.getElementById('calEnviar').onclick = function () {
+      var btn = this, err = document.getElementById('calErr');
+      err.textContent = ''; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+      LOGIA.api('comentar', { m: id.m, t: id.t, v: V, estrellas: elegido, texto: document.getElementById('calTexto').value })
+        .then(function () {
+          document.getElementById('calificar').innerHTML = '<p style="margin:0">Gracias. Tu calificación quedó publicada.</p>';
+        })
+        .catch(function (e) { err.textContent = e.message; btn.disabled = false; btn.textContent = 'PUBLICAR'; });
+    };
   }
 
   function preguntar() {
